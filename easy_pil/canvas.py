@@ -1,5 +1,7 @@
 from typing import Tuple, Union
 
+from PIL import Image
+
 
 class Canvas:
     def __init__(
@@ -9,3 +11,5 @@ class Canvas:
     ) -> None:
         self.size = size
         self.color = color
+
+        self.image = Image.new("RGBA", size, color=color)

@@ -20,12 +20,10 @@ class Editor:
             self.image = self.image.convert("RGBA")
         else:
             if canvas:
-                self.image = Image.new(
-                    mode="RGBA", size=canvas.size, color=canvas.color
-                )
+                self.image = canvas.image
             else:
                 raise ValueError(
-                    "'color' and 'size' is required to when no image is supplied"
+                    "'image' or 'canvas' is required to initialize editor."
                 )
 
     @property
@@ -67,16 +65,13 @@ class Editor:
         """Make image corners rounded"""
         background = Image.new("RGBA", size=self.image.size, color=(255, 255, 255, 0))
         holder = Image.new("RGBA", size=self.image.size, color=(255, 255, 255, 0))
-
         mask = Image.new("RGBA", size=self.image.size, color=(255, 255, 255, 0))
         mask_draw = ImageDraw.Draw(mask)
-
         mask_draw.rounded_rectangle(
             (5, 5) + (self.image.size[0] - 5, self.image.size[1] - 5),
             radius=radius,
             fill="black",
         )
-
         holder.paste(self.image, (0, 0))
         self.image = Image.composite(holder, background, mask)
 
@@ -86,24 +81,26 @@ class Editor:
         """Make image circular"""
         background = Image.new("RGBA", size=self.image.size, color=(255, 255, 255, 0))
         holder = Image.new("RGBA", size=self.image.size, color=(255, 255, 255, 0))
-
         mask = Image.new("RGBA", size=self.image.size, color=(255, 255, 255, 0))
         mask_draw = ImageDraw.Draw(mask)
-
         mask_draw.ellipse((0, 0) + self.image.size, fill="black")
-
         holder.paste(self.image, (0, 0))
         self.image = Image.composite(holder, background, mask)
 
+        return self
+    
+    def rotate(self, deg: float=0, expand: bool=False):
+        """Rotate image to given degree"""
+        self.image = self.image.rotate(angle=deg, expand=expand)
+        
         return self
 
     def paste(self, image: Image.Image, position: Tuple[float, float]):
         """Paste image into another"""
         blank = Image.new("RGBA", size=self.image.size, color=(255, 255, 255, 0))
-
         blank.paste(image, position)
-
         self.image = Image.alpha_composite(self.image, blank)
+        
         return self
 
     def text(

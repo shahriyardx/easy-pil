@@ -26,7 +26,7 @@ setup(
     keywords="Pillow, PIL, Pillow wrapper, PIL wrapper, Easy Pillow, Easy PIL, discord rank card, discord card",
     packages=find_packages(),
     package_data={
-        'easy_pil': ['fonts/*/*.ttf'],
+        "easy_pil": ["fonts/*/*.ttf"],
     },
     python_requires=">=3.6, <4",
     install_requires=["Pillow>=8.3.1", "requests>=2.26.0", "aiohttp>=3.7.4"],
