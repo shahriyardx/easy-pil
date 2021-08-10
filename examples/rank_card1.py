@@ -18,11 +18,14 @@ profile = Editor("assets/pfp.png").resize((150, 150)).circle_image()
 poppins = Font().poppins(size=40)
 poppins_small = Font().poppins(size=30)
 
-square = Canvas((500, 500), "#2C2F33")
-square = Editor(canvas=square)
-square.rotate(30, expand=True)
+card_right_shape = [
+    (600, 0),
+    (750, 300),
+    (900, 300),
+    (900, 0)
+]
 
-background.paste(square.image, (600, -250))
+background.polygon(card_right_shape, "#2C2F33")
 background.paste(profile.image, (30, 30))
 
 background.rectangle((30, 220), width=650, height=40, fill="#494b4f", radius=20)
