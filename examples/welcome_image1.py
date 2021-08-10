@@ -8,10 +8,6 @@ profile = Editor("assets/pfp.png").resize((200, 200)).circle_image()
 # profile_image = load_image(str(ctx.author.avatar_url))
 # profile = Editor(profile_image).resize((150, 150)).circle_image()
 
-square = Canvas((400, 500), "#2C2F33")
-square = Editor(canvas=square)
-square.rotate(15, expand=True)
-
 
 # Fonts to use with different size
 poppins_big = Font().poppins(variant="bold", size=50)
@@ -19,7 +15,14 @@ poppins_mediam = Font().poppins(variant="bold", size=40)
 poppins_regular = Font().poppins(variant="regular", size=30)
 poppins_thin = Font().poppins(variant="light", size=18)
 
-background.paste(square.image, (-150,-100))
+card_left_shape = [
+    (0, 0),
+    (0, 270),
+    (330, 270),
+    (260, 0)
+]
+
+background.polygon(card_left_shape, "#2C2F33")
 background.paste(profile.image, (40, 35))
 background.ellipse((40, 35), 200, 200, outline="white", stroke_width=3)
 background.text((600, 20), "WELCOME", font=poppins_big, color="white", align="center")
