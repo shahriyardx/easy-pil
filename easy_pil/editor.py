@@ -264,6 +264,17 @@ class Editor:
         )
 
         return self
+    
+    def polygon(
+        self, 
+        cordinates: list, 
+        fill: Union[str, int, Tuple[int, int, int]] = None,
+        outline: Union[str, int, Tuple[int, int, int]] = None,
+    ):
+        draw = ImageDraw.Draw(self.image)
+        draw.polygon(cordinates, fill=fill, outline=outline)
+
+        return self
 
     def show(self):
         """Show the image."""
