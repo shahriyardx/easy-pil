@@ -1,8 +1,10 @@
-from io import BytesIO
-from typing import Union, Tuple
-from PIL import Image, ImageDraw, ImageFont
-from .canvas import Canvas
+from typing_extensions import Annotated
 from .font import Font
+from .text import Text
+from io import BytesIO
+from .canvas import Canvas
+from PIL import Image, ImageDraw, ImageFont
+from typing import Literal, Union, Tuple
 
 
 class Editor:
@@ -88,11 +90,11 @@ class Editor:
         self.image = Image.composite(holder, background, mask)
 
         return self
-    
-    def rotate(self, deg: float=0, expand: bool=False):
+
+    def rotate(self, deg: float = 0, expand: bool = False):
         """Rotate image to given degree"""
         self.image = self.image.rotate(angle=deg, expand=expand)
-        
+
         return self
 
     def paste(self, image: Image.Image, position: Tuple[float, float]):
@@ -100,7 +102,7 @@ class Editor:
         blank = Image.new("RGBA", size=self.image.size, color=(255, 255, 255, 0))
         blank.paste(image, position)
         self.image = Image.alpha_composite(self.image, blank)
-        
+
         return self
 
     def text(
@@ -109,14 +111,63 @@ class Editor:
         text: str,
         font: Union[ImageFont.FreeTypeFont, Font] = None,
         color: Union[Tuple[int, int, int], str, int] = "black",
-        anchor: str = None,
+        align: Literal["left", "center", "right"] = "left",
     ):
         """Draw text into image"""
         if type(font) == Font:
             font = font.font
 
+        anchors = {"left": None, "center": "mt", "right": "rt"}
+
         draw = ImageDraw.Draw(self.image)
-        draw.text(position, text, color, font=font, anchor=anchor)
+        draw.text(position, text, color, font=font, anchor=anchors[align])
+
+        return self
+
+    def multicolor_text(
+        self,
+        position: Tuple[float, float],
+        texts: list,
+        space_separated: bool = True,
+        align: Literal["left", "center", "right"] = "left",
+    ):
+        """Draw text with multiple color"""
+        draw = ImageDraw.Draw(self.image)
+
+        if align == "left":
+            position = position
+
+        if align == "right":
+            total_width = 0
+
+            for text in texts:
+                total_width += text.font.getsize(text.text)[0]
+
+            position = (position[0] - total_width, position[1])
+
+        if align == "center":
+            total_width = 0
+
+            for text in texts:
+                total_width += text.font.getsize(text.text)[0]
+
+            position = (position[0] - (total_width / 2), position[1])
+
+        for text in texts:
+            sentence = text.text
+            font = text.font
+            color = text.color
+
+            if space_separated:
+                width, _ = (
+                    font.getsize(sentence)[0] + font.getsize(" ")[0],
+                    font.getsize(sentence)[1],
+                )
+            else:
+                width, _ = font.getsize(sentence)
+
+            draw.text(position, sentence, color, font=font)
+            position = (position[0] + width, position[1])
 
         return self
 
