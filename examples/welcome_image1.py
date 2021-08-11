@@ -15,20 +15,27 @@ poppins_mediam = Font().poppins(variant="bold", size=40)
 poppins_regular = Font().poppins(variant="regular", size=30)
 poppins_thin = Font().poppins(variant="light", size=18)
 
-card_left_shape = [
-    (0, 0),
-    (0, 270),
-    (330, 270),
-    (260, 0)
-]
+card_left_shape = [(0, 0), (0, 270), (330, 270), (260, 0)]
 
 background.polygon(card_left_shape, "#2C2F33")
 background.paste(profile.image, (40, 35))
 background.ellipse((40, 35), 200, 200, outline="white", stroke_width=3)
 background.text((600, 20), "WELCOME", font=poppins_big, color="white", align="center")
-background.text((600, 70), "Shahriyar#9770", font=poppins_regular, color="white", align="center")
-background.text((600, 120), "YOU ARE MEMBER", font=poppins_mediam, color="white", align="center")
-background.text((600, 160), "GUILD 4359", font=poppins_regular, color="white", align="center")
-background.text((620, 245), "THANK YOU FOR JOINING. HOPE YOU WILL ENJOY YOUR STAY", font=poppins_thin, color="white", align="center")
+background.text(
+    (600, 70), "Shahriyar#9770", font=poppins_regular, color="white", align="center"
+)
+background.text(
+    (600, 120), "YOU ARE MEMBER", font=poppins_mediam, color="white", align="center"
+)
+background.text(
+    (600, 160), "GUILD 4359", font=poppins_regular, color="white", align="center"
+)
+background.text(
+    (620, 245),
+    "THANK YOU FOR JOINING. HOPE YOU WILL ENJOY YOUR STAY",
+    font=poppins_thin,
+    color="white",
+    align="center",
+)
 
 background.show()
