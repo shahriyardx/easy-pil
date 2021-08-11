@@ -241,6 +241,24 @@ class Editor:
             )
 
         return self
+    
+    def rounded_bar(
+        self,
+        position: Tuple[float, float],
+        width: Union[int, float],
+        height: Union[int, float],
+        percentage: float,
+        fill: Union[str, int, Tuple[int, int, int]] = None,
+        stroke_width: float = 1
+    ):
+        draw = ImageDraw.Draw(self.image)
+
+        start = -90
+        end = (percentage * 3.6) - 90
+        
+        draw.arc(position + (position[0] + width, position[1] + height), start, end, fill, width=stroke_width)
+
+        return self
 
     def ellipse(
         self,
@@ -273,6 +291,24 @@ class Editor:
     ):
         draw = ImageDraw.Draw(self.image)
         draw.polygon(cordinates, fill=fill, outline=outline)
+
+        return self
+    
+    def arc(
+        self,
+        position: Tuple[float, float],
+        width: float,
+        height: float,
+        start: float,
+        rotation: float,
+        fill: Union[str, int, Tuple[int, int, int]] = None,
+        stroke_width: float = 1
+    ):
+        draw = ImageDraw.Draw(self.image)
+
+        start = start - 90
+        end = rotation - 90
+        draw.arc(position + (position[0] + width, position[1] + height), start, end, fill, width=stroke_width)
 
         return self
 
