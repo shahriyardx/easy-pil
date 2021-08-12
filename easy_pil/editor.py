@@ -39,7 +39,7 @@ class Editor:
     def resize(self, size: Tuple[float, float], crop=False):
         """Resize an image to given size"""
         if not crop:
-            self.image = self.image.resize(size)
+            self.image = self.image.resize(size, Image.ANTIALIAS)
 
         else:
             width, height = self.image.size
