@@ -7,7 +7,7 @@ long_description = (here / "README.md").read_text(encoding="utf-8")
 
 setup(
     name="easy-pil",
-    version="0.0.6",
+    version="0.0.7",
     description="A library to make common tasks of Pillow easy.",  # Optional
     long_description=long_description,
     long_description_content_type="text/markdown",
