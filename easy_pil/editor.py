@@ -1,32 +1,29 @@
-from typing_extensions import Annotated
+from __future__ import annotations
 from .font import Font
-from .text import Text
 from io import BytesIO
 from .canvas import Canvas
-from PIL import Image, ImageDraw, ImageFont
 from typing import Literal, Union, Tuple
+from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
 
 class Editor:
     """Editor class"""
 
     def __init__(
-        self, image: Union[Image.Image, str] = None, canvas: Canvas = None
+        self,
+        image: Union[Image.Image, str, Editor, Canvas]
     ) -> None:
-        if image:
-            if type(image) == str:
-                self.image: Image.Image = Image.open(image)
-            else:
-                self.image: Image.Image = image
+        if type(image) == str:
+            self.image = Image.open(image)
 
-            self.image = self.image.convert("RGBA")
+        elif type(image) == Canvas or type(image) == Editor:
+            self.image = image.image
+
         else:
-            if canvas:
-                self.image = canvas.image
-            else:
-                raise ValueError(
-                    "'image' or 'canvas' is required to initialize editor."
-                )
+            self.image = image
+
+        self.image = self.image.convert("RGBA")
+
 
     @property
     def image_bytes(self) -> BytesIO:
@@ -97,9 +94,45 @@ class Editor:
 
         return self
 
-    def paste(self, image: Image.Image, position: Tuple[float, float]):
+    def blur(self, mode: Literal["box", "gussian"] = "gussian", amount: float = 1):
+        """Blur image"""
+
+        if mode == "box":
+            self.image = self.image.filter(ImageFilter.BoxBlur(radius=amount))
+        if mode == "gussian":
+            self.image = self.image.filter(ImageFilter.GaussianBlur(radius=amount))
+
+        return self
+
+    def blend(
+        self,
+        image: Union[Image.Image, Editor, Canvas],
+        alpha: float = 0.0,
+        on_top: bool = False,
+    ):
+        """Blend image"""
+        if type(image) == Editor or type(image) == Canvas:
+            image = image.image
+        
+        if image.size != self.image.size:
+            image = Editor(image).resize(self.image.size, crop=True).image
+
+        if on_top:
+            self.image = Image.blend(self.image, image, alpha=alpha)
+
+        self.image = Image.blend(image, self.image, alpha=alpha)
+
+        return self
+
+    def paste(
+        self, image: Union[Image.Image, Editor, Canvas], position: Tuple[float, float]
+    ):
         """Paste image into another"""
         blank = Image.new("RGBA", size=self.image.size, color=(255, 255, 255, 0))
+
+        if type(image) == Editor or type(image) == Canvas:
+            image = image.image
+
         blank.paste(image, position)
         self.image = Image.alpha_composite(self.image, blank)
 
@@ -241,7 +274,7 @@ class Editor:
             )
 
         return self
-    
+
     def rounded_bar(
         self,
         position: Tuple[float, float],
@@ -249,14 +282,20 @@ class Editor:
         height: Union[int, float],
         percentage: float,
         fill: Union[str, int, Tuple[int, int, int]] = None,
-        stroke_width: float = 1
+        stroke_width: float = 1,
     ):
         draw = ImageDraw.Draw(self.image)
 
         start = -90
         end = (percentage * 3.6) - 90
-        
-        draw.arc(position + (position[0] + width, position[1] + height), start, end, fill, width=stroke_width)
+
+        draw.arc(
+            position + (position[0] + width, position[1] + height),
+            start,
+            end,
+            fill,
+            width=stroke_width,
+        )
 
         return self
 
@@ -282,10 +321,10 @@ class Editor:
         )
 
         return self
-    
+
     def polygon(
-        self, 
-        cordinates: list, 
+        self,
+        cordinates: list,
         fill: Union[str, int, Tuple[int, int, int]] = None,
         outline: Union[str, int, Tuple[int, int, int]] = None,
     ):
@@ -293,7 +332,7 @@ class Editor:
         draw.polygon(cordinates, fill=fill, outline=outline)
 
         return self
-    
+
     def arc(
         self,
         position: Tuple[float, float],
@@ -302,13 +341,19 @@ class Editor:
         start: float,
         rotation: float,
         fill: Union[str, int, Tuple[int, int, int]] = None,
-        stroke_width: float = 1
+        stroke_width: float = 1,
     ):
         draw = ImageDraw.Draw(self.image)
 
         start = start - 90
         end = rotation - 90
-        draw.arc(position + (position[0] + width, position[1] + height), start, end, fill, width=stroke_width)
+        draw.arc(
+            position + (position[0] + width, position[1] + height),
+            start,
+            end,
+            fill,
+            width=stroke_width,
+        )
 
         return self
 
