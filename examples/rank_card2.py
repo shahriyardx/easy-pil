@@ -9,7 +9,7 @@ user_data = {  # Most likely coming from database or calculation
     "rank": 10,
 }
 
-background = Editor(canvas=Canvas((934, 282), "#23272a"))
+background = Editor(Canvas((934, 282), "#23272a"))
 profile = Editor("assets/pfp.png").resize((190, 190)).circle_image()
 
 # For profile to use users profile picture load it from url using the load_image/load_image_async function
@@ -20,7 +20,7 @@ profile = Editor("assets/pfp.png").resize((190, 190)).circle_image()
 poppins = Font().poppins(size=30)
 
 background.rectangle((20, 20), 894, 242, "#2a2e35")
-background.paste(profile.image, (50, 50))
+background.paste(profile, (50, 50))
 background.ellipse((42, 42), width=206, height=206, outline="#43b581", stroke_width=10)
 background.rectangle((260, 180), width=630, height=40, fill="#484b4e", radius=20)
 background.bar(

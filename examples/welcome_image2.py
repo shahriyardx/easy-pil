@@ -14,7 +14,7 @@ poppins = Font().poppins(size=50, variant="bold")
 poppins_small = Font().poppins(size=25, variant="regular")
 poppins_light = Font().poppins(size=20, variant="light")
 
-background.paste(profile.image, (325, 90))
+background.paste(profile, (325, 90))
 background.ellipse((325, 90), 150, 150, outline="gold", stroke_width=4)
 background.text((400, 260), "WELCOME", color="white", font=poppins, align="center")
 background.text(

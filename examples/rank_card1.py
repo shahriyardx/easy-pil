@@ -8,7 +8,7 @@ user_data = {  # Most likely coming from database or calculation
     "percentage": 45,
 }
 
-background = Editor(canvas=Canvas((900, 300), color="#23272A"))
+background = Editor(Canvas((900, 300), color="#23272A"))
 profile = Editor("assets/pfp.png").resize((150, 150)).circle_image()
 
 # For profile to use users profile picture load it from url using the load_image/load_image_async function
@@ -21,7 +21,7 @@ poppins_small = Font().poppins(size=30)
 card_right_shape = [(600, 0), (750, 300), (900, 300), (900, 0)]
 
 background.polygon(card_right_shape, "#2C2F33")
-background.paste(profile.image, (30, 30))
+background.paste(profile, (30, 30))
 
 background.rectangle((30, 220), width=650, height=40, fill="#494b4f", radius=20)
 background.bar(
