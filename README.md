@@ -25,3 +25,7 @@ A library to make common tasks of Pillow easy.
 
 ## 0.0.6
 - Added `arc` and `rounded_bar` methods
+
+## 0.0.7
+- Added `bled` method
+- Added `blur` method
