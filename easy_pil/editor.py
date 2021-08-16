@@ -60,14 +60,14 @@ class Editor:
 
         return self
 
-    def rouded_corners(self, radius: int = 10):
+    def rounded_corners(self, radius: int = 10):
         """Make image corners rounded"""
         background = Image.new("RGBA", size=self.image.size, color=(255, 255, 255, 0))
         holder = Image.new("RGBA", size=self.image.size, color=(255, 255, 255, 0))
         mask = Image.new("RGBA", size=self.image.size, color=(255, 255, 255, 0))
         mask_draw = ImageDraw.Draw(mask)
         mask_draw.rounded_rectangle(
-            (5, 5) + (self.image.size[0] - 5, self.image.size[1] - 5),
+            (0, 0) + (self.image.size[0], self.image.size[1]),
             radius=radius,
             fill="black",
         )

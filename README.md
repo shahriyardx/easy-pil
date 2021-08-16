@@ -29,3 +29,6 @@ A library to make common tasks of Pillow easy.
 ## 0.0.7
 - Added `blend` method
 - Added `blur` method
+
+## 0.0.8
+- Rounded corners fix
