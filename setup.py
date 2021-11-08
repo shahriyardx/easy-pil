@@ -11,7 +11,7 @@ long_description = (pathlib.Path(__file__).parent.resolve() / "README.md").read_
 )
 
 version = ""
-with open("nextcord/__init__.py") as f:
+with open("easy_pil/__init__.py") as f:
     version = re.search(
         r'^__version__\s*=\s*[\'"]([^\'"]*)[\'"]', f.read(), re.MULTILINE
     ).group(1)
