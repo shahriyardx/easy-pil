@@ -10,10 +10,10 @@ profile = Editor("assets/pfp.png").resize((200, 200)).circle_image()
 
 
 # Fonts to use with different size
-poppins_big = Font().poppins(variant="bold", size=50)
-poppins_mediam = Font().poppins(variant="bold", size=40)
-poppins_regular = Font().poppins(variant="regular", size=30)
-poppins_thin = Font().poppins(variant="light", size=18)
+poppins_big = Font.poppins(variant="bold", size=50)
+poppins_mediam = Font.poppins(variant="bold", size=40)
+poppins_regular = Font.poppins(variant="regular", size=30)
+poppins_thin = Font.poppins(variant="light", size=18)
 
 card_left_shape = [(0, 0), (0, 270), (330, 270), (260, 0)]
 

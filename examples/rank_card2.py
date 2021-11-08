@@ -17,7 +17,7 @@ profile = Editor("assets/pfp.png").resize((190, 190)).circle_image()
 # profile = Editor(profile_image).resize((150, 150)).circle_image()
 
 
-poppins = Font().poppins(size=30)
+poppins = Font.poppins(size=30)
 
 background.rectangle((20, 20), 894, 242, "#2a2e35")
 background.paste(profile, (50, 50))

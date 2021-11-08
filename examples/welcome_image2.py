@@ -10,9 +10,9 @@ profile = Editor("assets/pfp.png").resize((150, 150)).circle_image()
 
 
 # Fonts
-poppins = Font().poppins(size=50, variant="bold")
-poppins_small = Font().poppins(size=25, variant="regular")
-poppins_light = Font().poppins(size=20, variant="light")
+poppins = Font.poppins(size=50, variant="bold")
+poppins_small = Font.poppins(size=25, variant="regular")
+poppins_light = Font.poppins(size=20, variant="light")
 
 background.paste(profile, (325, 90))
 background.ellipse((325, 90), 150, 150, outline="gold", stroke_width=4)

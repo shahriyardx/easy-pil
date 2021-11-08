@@ -18,10 +18,10 @@ profile = Editor("assets/pfp.png").resize((200, 200))
 # profile = Editor(profile_image).resize((200, 200))
 
 
-font_40 = Font().poppins(size=40)
-font_20 = Font().montserrat(size=20)
-font_25 = Font().poppins(size=25)
-font_40_bold = Font().poppins(size=40, variant="bold")
+font_40 = Font.poppins(size=40)
+font_20 = Font.montserrat(size=20)
+font_25 = Font.poppins(size=25)
+font_40_bold = Font.poppins(size=40, variant="bold")
 
 background.paste(profile, (20, 20))
 background.text((240, 20), user_data["name"], font=font_40, color="white")

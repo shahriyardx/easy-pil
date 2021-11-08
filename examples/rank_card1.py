@@ -15,8 +15,8 @@ profile = Editor("assets/pfp.png").resize((150, 150)).circle_image()
 # profile_image = load_image(str(ctx.author.avatar_url))
 # profile = Editor(profile_image).resize((150, 150)).circle_image()
 
-poppins = Font().poppins(size=40)
-poppins_small = Font().poppins(size=30)
+poppins = Font.poppins(size=40)
+poppins_small = Font.poppins(size=30)
 
 card_right_shape = [(600, 0), (750, 300), (900, 300), (900, 0)]
 
