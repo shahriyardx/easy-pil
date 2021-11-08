@@ -356,3 +356,7 @@ class Editor:
     def show(self):
         """Show the image."""
         self.image.show()
+    
+    def save(self, fp, format=None, **params):
+        """Save the image"""
+        self.image.save(fp, format, **params)
