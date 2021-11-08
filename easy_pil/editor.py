@@ -9,10 +9,7 @@ from PIL import Image, ImageDraw, ImageFilter, ImageFont
 class Editor:
     """Editor class"""
 
-    def __init__(
-        self,
-        image: Union[Image.Image, str, Editor, Canvas]
-    ) -> None:
+    def __init__(self, image: Union[Image.Image, str, Editor, Canvas]) -> None:
         if type(image) == str:
             self.image = Image.open(image)
 
@@ -23,7 +20,6 @@ class Editor:
             self.image = image
 
         self.image = self.image.convert("RGBA")
-
 
     @property
     def image_bytes(self) -> BytesIO:
@@ -113,7 +109,7 @@ class Editor:
         """Blend image"""
         if type(image) == Editor or type(image) == Canvas:
             image = image.image
-        
+
         if image.size != self.image.size:
             image = Editor(image).resize(self.image.size, crop=True).image
 
