@@ -67,7 +67,7 @@ class Editor:
         mask = Image.new("RGBA", size=self.image.size, color=(255, 255, 255, 0))
         mask_draw = ImageDraw.Draw(mask)
         mask_draw.rounded_rectangle(
-            (0, 0) + (self.image.size[0], self.image.size[1]),
+            (2, 2) + (self.image.size[0] - 2, self.image.size[1] - 2),
             radius=radius,
             fill="black",
         )
@@ -150,7 +150,7 @@ class Editor:
         if type(font) == Font:
             font = font.font
 
-        anchors = {"left": None, "center": "mt", "right": "rt"}
+        anchors = {"left": "lt", "center": "mt", "right": "rt"}
 
         draw = ImageDraw.Draw(self.image)
         draw.text(position, text, color, font=font, anchor=anchors[align])
