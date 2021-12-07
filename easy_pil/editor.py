@@ -2,7 +2,8 @@ from __future__ import annotations
 from .font import Font
 from io import BytesIO
 from .canvas import Canvas
-from typing import Literal, Union, Tuple
+from typing import Union, Tuple
+from typing_extensions import Literal
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
 

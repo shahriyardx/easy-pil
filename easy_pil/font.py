@@ -1,6 +1,6 @@
 import os
 from PIL import ImageFont
-from typing import Literal
+from typing_extensions import Literal
 
 fonts_directory = os.path.join(os.path.dirname(__file__), "fonts")
 fonts_path = {
