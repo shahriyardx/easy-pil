@@ -248,6 +248,7 @@ class Editor:
         height: Union[int, float],
         percentage: int = 1,
         fill: Union[str, int, Tuple[int, int, int]] = None,
+        color: Union[str, int, Tuple[int, int, int]] = None,
         outline: Union[str, int, Tuple[int, int, int]] = None,
         stroke_width: float = 1,
         radius: int = 0,
@@ -255,6 +256,9 @@ class Editor:
         """Make progerss bar"""
         draw = ImageDraw.Draw(self.image)
 
+        if color:
+            fill = color
+        
         ratio = max_width / 100
         to_width = ratio * percentage + position[0]
 
