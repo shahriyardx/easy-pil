@@ -1,6 +1,7 @@
+from importlib.util import module_from_spec, spec_from_file_location
 from pathlib import Path
-from importlib.util import spec_from_file_location, module_from_spec
-from setuptools import setup, find_packages
+
+from setuptools import find_packages, setup
 
 with open("requirements.txt") as f:
     requirements = f.read().splitlines()
@@ -10,7 +11,7 @@ current_directory = Path(__file__).parent.resolve()
 long_description = (current_directory / "README.md").read_text(encoding="utf-8")
 
 vpath = current_directory / 'easy_pil' / '_version.py'
-spec = spec_from_file_location(vpath.name.removesuffix('.py'), vpath)
+spec = spec_from_file_location(vpath.name.replace('.py', ''), vpath)
 mod = module_from_spec(spec)
 spec.loader.exec_module(mod)
 
