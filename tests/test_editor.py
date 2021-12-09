@@ -1,6 +1,6 @@
-from io import BytesIO
 import os
 import unittest
+from io import BytesIO
 
 from PIL import Image
 
