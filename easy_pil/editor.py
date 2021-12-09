@@ -209,6 +209,7 @@ class Editor:
         width: float,
         height: float,
         fill: Union[str, int, Tuple[int, int, int]] = None,
+        color: Union[str, int, Tuple[int, int, int]] = None,
         outline: Union[str, int, Tuple[int, int, int]] = None,
         stroke_width: float = 1,
         radius: int = 0,
@@ -218,6 +219,9 @@ class Editor:
 
         to_width = width + position[0]
         to_height = height + position[1]
+
+        if color:
+            fill = color
 
         if radius <= 0:
             draw.rectangle(
