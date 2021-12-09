@@ -1,9 +1,10 @@
 import asyncio
+import functools
+from io import BytesIO
+
 import aiohttp
 import requests
-import functools
 from PIL import Image
-from io import BytesIO
 
 
 async def run_in_executor(func, **kwargs):

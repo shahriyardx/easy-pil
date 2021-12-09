@@ -1,5 +1,6 @@
+from typing import Tuple, Union
+
 from PIL import ImageFont
-from typing import Union, Tuple
 
 
 class Text:

@@ -1,6 +1,5 @@
 from easy_pil import Canvas, Editor, Font
 
-
 user_data = {
     "name": "Shahriyar#9770",
     "bio": "An Example Bot user",

@@ -1,6 +1,5 @@
 from easy_pil import Canvas, Editor, Font, Text, font
 
-
 background = Editor(Canvas((900, 270), "#23272a"))
 profile = Editor("assets/pfp.png").resize((200, 200)).circle_image()
 

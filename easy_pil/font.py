@@ -1,4 +1,5 @@
 import os
+
 from PIL import ImageFont
 from typing_extensions import Literal
 

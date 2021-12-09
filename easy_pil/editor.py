@@ -1,22 +1,27 @@
 from __future__ import annotations
-from .font import Font
+
 from io import BytesIO
-from .canvas import Canvas
-from typing import Union, Tuple
-from typing_extensions import Literal
+from typing import List, Tuple, Union
+
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
+from typing_extensions import Literal
+
+from .canvas import Canvas
+from .font import Font
+from .text import Text
 
 
 class Editor:
     """Editor class"""
 
     def __init__(self, image: Union[Image.Image, str, Editor, Canvas]) -> None:
-        if type(image) == str:
+        if isinstance(image, str):
             self.image = Image.open(image)
         elif isinstance(image, Canvas) or isinstance(image, Editor):
             self.image = image.image
         else:
             self.image = image
+        
         self.image = self.image.convert("RGBA")
 
     @property
@@ -105,7 +110,7 @@ class Editor:
         on_top: bool = False,
     ):
         """Blend image"""
-        if type(image) == Editor or type(image) == Canvas:
+        if isinstance(image, Editor) or isinstance(image, Canvas):
             image = image.image
 
         if image.size != self.image.size:
@@ -124,7 +129,7 @@ class Editor:
         """Paste image into another"""
         blank = Image.new("RGBA", size=self.image.size, color=(255, 255, 255, 0))
 
-        if type(image) == Editor or type(image) == Canvas:
+        if isinstance(image, Editor) or isinstance(image, Canvas):
             image = image.image
 
         blank.paste(image, position)
@@ -141,7 +146,7 @@ class Editor:
         align: Literal["left", "center", "right"] = "left",
     ):
         """Draw text into image"""
-        if type(font) == Font:
+        if isinstance(font, Font):
             font = font.font
 
         anchors = {"left": "lt", "center": "mt", "right": "rt"}
@@ -154,7 +159,7 @@ class Editor:
     def multicolor_text(
         self,
         position: Tuple[float, float],
-        texts: list,
+        texts: List[Text],
         space_separated: bool = True,
         align: Literal["left", "center", "right"] = "left",
     ):

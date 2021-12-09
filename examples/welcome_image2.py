@@ -1,6 +1,5 @@
 from easy_pil import Editor, Font, Text
 
-
 background = Editor("assets/wlcbg.jpg")
 profile = Editor("assets/pfp.png").resize((150, 150)).circle_image()
 
