@@ -13,13 +13,10 @@ class Editor:
     def __init__(self, image: Union[Image.Image, str, Editor, Canvas]) -> None:
         if type(image) == str:
             self.image = Image.open(image)
-
-        elif type(image) == Canvas or type(image) == Editor:
+        elif isinstance(image, Canvas) or isinstance(image, Editor):
             self.image = image.image
-
         else:
             self.image = image
-
         self.image = self.image.convert("RGBA")
 
     @property

@@ -1,27 +1,22 @@
-import re
-import pathlib
+from pathlib import Path
+from importlib.util import spec_from_file_location, module_from_spec
 from setuptools import setup, find_packages
 
-requirements = []
 with open("requirements.txt") as f:
     requirements = f.read().splitlines()
 
-long_description = (pathlib.Path(__file__).parent.resolve() / "README.md").read_text(
-    encoding="utf-8"
-)
+current_directory = Path(__file__).parent.resolve()
 
-version = ""
-with open("easy_pil/__init__.py") as f:
-    version = re.search(
-        r'^__version__\s*=\s*[\'"]([^\'"]*)[\'"]', f.read(), re.MULTILINE
-    ).group(1)
+long_description = (current_directory / "README.md").read_text(encoding="utf-8")
 
-if not version:
-    raise RuntimeError("version is not set")
+vpath = current_directory / 'easy_pil' / '_version.py'
+spec = spec_from_file_location(vpath.name.removesuffix('.py'), vpath)
+mod = module_from_spec(spec)
+spec.loader.exec_module(mod)
 
 setup(
     name="easy-pil",
-    version=version,
+    version=mod.__version__,
     description="A library to make common tasks of Pillow easy.",  # Optional
     long_description=long_description,
     long_description_content_type="text/markdown",
