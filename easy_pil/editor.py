@@ -118,8 +118,8 @@ class Editor:
 
         if on_top:
             self.image = Image.blend(self.image, image, alpha=alpha)
-
-        self.image = Image.blend(image, self.image, alpha=alpha)
+        else:
+            self.image = Image.blend(image, self.image, alpha=alpha)
 
         return self
 
