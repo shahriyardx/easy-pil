@@ -289,10 +289,14 @@ class Editor:
         height: Union[int, float],
         percentage: float,
         fill: Union[str, int, Tuple[int, int, int]] = None,
+        color: Union[str, int, Tuple[int, int, int]] = None,
         stroke_width: float = 1,
     ):
         draw = ImageDraw.Draw(self.image)
 
+        if color:
+            fill = color
+        
         start = -90
         end = (percentage * 3.6) - 90
 
