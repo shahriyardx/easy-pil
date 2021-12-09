@@ -21,7 +21,7 @@ class Editor:
             self.image = image.image
         else:
             self.image = image
-        
+
         self.image = self.image.convert("RGBA")
 
     @property
@@ -59,7 +59,7 @@ class Editor:
 
         return self
 
-    def rounded_corners(self, radius: int = 10, offset: int=2):
+    def rounded_corners(self, radius: int = 10, offset: int = 2):
         """Make image corners rounded"""
         background = Image.new("RGBA", size=self.image.size, color=(255, 255, 255, 0))
         holder = Image.new("RGBA", size=self.image.size, color=(255, 255, 255, 0))
@@ -258,7 +258,7 @@ class Editor:
 
         if color:
             fill = color
-        
+
         ratio = max_width / 100
         to_width = ratio * percentage + position[0]
 
@@ -296,7 +296,7 @@ class Editor:
 
         if color:
             fill = color
-        
+
         start = -90
         end = (percentage * 3.6) - 90
 
@@ -316,6 +316,7 @@ class Editor:
         width: float,
         height: float,
         fill: Union[str, int, Tuple[int, int, int]] = None,
+        color: Union[str, int, Tuple[int, int, int]] = None,
         outline: Union[str, int, Tuple[int, int, int]] = None,
         stroke_width: float = 1,
     ):
@@ -323,6 +324,9 @@ class Editor:
         draw = ImageDraw.Draw(self.image)
         to_width = width + position[0]
         to_height = height + position[1]
+
+        if color:
+            fill = color
 
         draw.ellipse(
             position + (to_width, to_height),
@@ -337,8 +341,13 @@ class Editor:
         self,
         cordinates: list,
         fill: Union[str, int, Tuple[int, int, int]] = None,
+        color: Union[str, int, Tuple[int, int, int]] = None,
         outline: Union[str, int, Tuple[int, int, int]] = None,
     ):
+        """Make polygon"""
+        if color:
+            fill = color
+
         draw = ImageDraw.Draw(self.image)
         draw.polygon(cordinates, fill=fill, outline=outline)
 
@@ -352,12 +361,18 @@ class Editor:
         start: float,
         rotation: float,
         fill: Union[str, int, Tuple[int, int, int]] = None,
+        color: Union[str, int, Tuple[int, int, int]] = None,
         stroke_width: float = 1,
     ):
+        """Make arc"""
         draw = ImageDraw.Draw(self.image)
 
         start = start - 90
         end = rotation - 90
+
+        if color:
+            fill = color
+
         draw.arc(
             position + (position[0] + width, position[1] + height),
             start,
@@ -371,7 +386,7 @@ class Editor:
     def show(self):
         """Show the image."""
         self.image.show()
-    
+
     def save(self, fp, format=None, **params):
         """Save the image"""
         self.image.save(fp, format, **params)

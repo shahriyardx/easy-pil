@@ -30,26 +30,27 @@ fonts_path = {
 
 class Font:
     """Font class"""
+
     def __init__(self, path: str, size: int = 10, **kwargs) -> None:
         self.font = ImageFont.truetype(path, size=size, **kwargs)
 
     @staticmethod
     def poppins(
         variant: Literal["regular", "bold", "italic", "light"] = "regular",
-        size: int=10,
+        size: int = 10,
     ):
         return ImageFont.truetype(fonts_path["poppins"][variant], size=size)
 
     @staticmethod
     def caveat(
         variant: Literal["regular", "bold", "italic", "light"] = "regular",
-        size: int=10,
+        size: int = 10,
     ):
         return ImageFont.truetype(fonts_path["caveat"][variant], size=size)
 
     @staticmethod
     def montserrat(
         variant: Literal["regular", "bold", "italic", "light"] = "regular",
-        size: int=10,
+        size: int = 10,
     ):
         return ImageFont.truetype(fonts_path["montserrat"][variant], size=size)
