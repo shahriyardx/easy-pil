@@ -29,7 +29,16 @@ fonts_path = {
 
 
 class Font:
-    """Font class"""
+    """Font class
+    
+    Args:
+        path (str): Path to font file
+        size (int, optional): Font size. Defaults to 10.
+        **kwargs: Additional arguments for ImageFont.truetype
+
+    Returns:
+        Font: Font object
+    """
 
     def __init__(self, path: str, size: int = 10, **kwargs) -> None:
         self.font = ImageFont.truetype(path, size=size, **kwargs)
@@ -39,6 +48,15 @@ class Font:
         variant: Literal["regular", "bold", "italic", "light"] = "regular",
         size: int = 10,
     ):
+        """Poppins font
+        
+        Args:
+            variant (str, optional): Font variant. Defaults to "regular".
+            size (int, optional): Font size. Defaults to 10.
+
+        Returns:
+            ImageFont.FreeTypeFont: Font object
+        """
         return ImageFont.truetype(fonts_path["poppins"][variant], size=size)
 
     @staticmethod
@@ -46,6 +64,15 @@ class Font:
         variant: Literal["regular", "bold", "italic", "light"] = "regular",
         size: int = 10,
     ):
+        """Caveat font
+
+        Args:
+            variant (str, optional): Font variant. Defaults to "regular".
+            size (int, optional): Font size. Defaults to 10.
+
+        Returns:
+            ImageFont.FreeTypeFont: Font object
+        """
         return ImageFont.truetype(fonts_path["caveat"][variant], size=size)
 
     @staticmethod
@@ -53,4 +80,13 @@ class Font:
         variant: Literal["regular", "bold", "italic", "light"] = "regular",
         size: int = 10,
     ):
+        """Montserrat font
+
+        Args:
+            variant (str, optional): Font variant. Defaults to "regular".
+            size (int, optional): Font size. Defaults to 10.
+
+        Returns:
+            ImageFont.FreeTypeFont: Font object
+        """
         return ImageFont.truetype(fonts_path["montserrat"][variant], size=size)

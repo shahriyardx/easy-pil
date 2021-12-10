@@ -12,7 +12,7 @@ from .text import Text
 
 
 class Editor:
-    """Editor class"""
+    """Editor to edit and manipulate images"""
 
     def __init__(self, image: Union[Image.Image, str, Editor, Canvas]) -> None:
         if isinstance(image, str):
@@ -26,14 +26,27 @@ class Editor:
 
     @property
     def image_bytes(self) -> BytesIO:
+        """Return image as bytes
+        
+        Returns:
+            BytesIO: Image as bytes
+        """
         _bytes = BytesIO()
         self.image.save(_bytes, "png")
         _bytes.seek(0)
 
         return _bytes
 
-    def resize(self, size: Tuple[float, float], crop=False):
-        """Resize an image to given size"""
+    def resize(self, size: Tuple[float, float], crop=False) -> Editor:
+        """Resize an image to given size
+        
+        Args:
+            size (Tuple[float, float]): Size of the image
+            crop (bool, optional): Crop image to given size. Defaults to False.
+        
+        Returns:
+            Editor: Editor object
+        """
         if not crop:
             self.image = self.image.resize(size, Image.ANTIALIAS)
 
@@ -59,8 +72,16 @@ class Editor:
 
         return self
 
-    def rounded_corners(self, radius: int = 10, offset: int = 2):
-        """Make image corners rounded"""
+    def rounded_corners(self, radius: int = 10, offset: int = 2) -> Editor:
+        """Add rounded corners to image
+        
+        Args:
+            radius (int, optional): Radius of the corners. Defaults to 10.
+            offset (int, optional): Offset of the corners. Defaults to 2.
+        
+        Returns:
+            Editor: Editor object
+        """
         background = Image.new("RGBA", size=self.image.size, color=(255, 255, 255, 0))
         holder = Image.new("RGBA", size=self.image.size, color=(255, 255, 255, 0))
         mask = Image.new("RGBA", size=self.image.size, color=(255, 255, 255, 0))
@@ -75,8 +96,12 @@ class Editor:
 
         return self
 
-    def circle_image(self):
-        """Make image circular"""
+    def circle_image(self) -> Editor:
+        """Make image circular
+        
+        Returns:
+            Editor: Editor object
+        """
         background = Image.new("RGBA", size=self.image.size, color=(255, 255, 255, 0))
         holder = Image.new("RGBA", size=self.image.size, color=(255, 255, 255, 0))
         mask = Image.new("RGBA", size=self.image.size, color=(255, 255, 255, 0))
@@ -88,13 +113,29 @@ class Editor:
         return self
 
     def rotate(self, deg: float = 0, expand: bool = False):
-        """Rotate image to given degree"""
+        """Rotate image to given degree
+        
+        Args:
+            deg (float, optional): Degree to rotate. Defaults to 0.
+            expand (bool, optional): Expand image to fit rotated image. Defaults to False.
+
+        Returns:
+            Editor: Editor object
+        """
         self.image = self.image.rotate(angle=deg, expand=expand)
 
         return self
 
-    def blur(self, mode: Literal["box", "gussian"] = "gussian", amount: float = 1):
-        """Blur image"""
+    def blur(self, mode: Literal["box", "gussian"] = "gussian", amount: float = 1) -> Editor:
+        """Blur image
+        
+        Args:
+            mode (Literal['box', 'gussian'], optional): Blur mode. Defaults to 'gussian'.
+            amount (float, optional): Amount of blur. Defaults to 1.
+        
+        Returns:
+            Editor: Editor object
+        """
 
         if mode == "box":
             self.image = self.image.filter(ImageFilter.BoxBlur(radius=amount))
@@ -108,8 +149,17 @@ class Editor:
         image: Union[Image.Image, Editor, Canvas],
         alpha: float = 0.0,
         on_top: bool = False,
-    ):
-        """Blend image"""
+    ) -> Editor:
+        """Blend image into another one
+        
+        Args:
+            image (Union[Image.Image, Editor, Canvas]): Image to blend into
+            alpha (float, optional): Alpha of the image. Defaults to 0.0.
+            on_top (bool, optional): Blend image on top of another image. Defaults to False.
+        
+        Returns:
+            Editor: Editor object
+        """
         if isinstance(image, Editor) or isinstance(image, Canvas):
             image = image.image
 
@@ -125,8 +175,16 @@ class Editor:
 
     def paste(
         self, image: Union[Image.Image, Editor, Canvas], position: Tuple[float, float]
-    ):
-        """Paste image into another"""
+    ) -> Editor:
+        """Paste image into another
+        
+        Args:
+            image (Union[Image.Image, Editor, Canvas]): Image to paste
+            position (Tuple[float, float]): Position to paste image
+        
+        Returns:
+            Editor: Editor object
+        """
         blank = Image.new("RGBA", size=self.image.size, color=(255, 255, 255, 0))
 
         if isinstance(image, Editor) or isinstance(image, Canvas):
@@ -144,8 +202,19 @@ class Editor:
         font: Union[ImageFont.FreeTypeFont, Font] = None,
         color: Union[Tuple[int, int, int], str, int] = "black",
         align: Literal["left", "center", "right"] = "left",
-    ):
-        """Draw text into image"""
+    ) -> Editor:
+        """Draw text into image
+        
+        Args:
+            position (Tuple[float, float]): Position to draw text
+            text (str): Text to draw
+            font (Union[ImageFont.FreeTypeFont, Font], optional): Font to use. Defaults to None.
+            color (Union[Tuple[int, int, int], str, int], optional): Color of the text. Defaults to "black".
+            align (Literal['left', 'center', 'right'], optional): Alignment of the text. Defaults to "left".
+        
+        Returns:
+            Editor: Editor object
+        """
         if isinstance(font, Font):
             font = font.font
 
@@ -162,8 +231,18 @@ class Editor:
         texts: List[Text],
         space_separated: bool = True,
         align: Literal["left", "center", "right"] = "left",
-    ):
-        """Draw text with multiple color"""
+    ) -> Editor:
+        """Draw text with multiple color
+        
+        Args:
+            position (Tuple[float, float]): Position to draw text
+            texts (List[Text]): Texts to draw
+            space_separated (bool, optional): Separate text with space. Defaults to True.
+            align (Literal['left', 'center', 'right'], optional): Alignment of the text. Defaults to "left".
+        
+        Returns:
+            Editor: Editor object
+        """
         draw = ImageDraw.Draw(self.image)
 
         if align == "left":
@@ -213,8 +292,22 @@ class Editor:
         outline: Union[str, int, Tuple[int, int, int]] = None,
         stroke_width: float = 1,
         radius: int = 0,
-    ):
-        """Draw rectangle into image"""
+    ) -> Editor:
+        """Draw rectangle into image
+        
+        Args: 
+            position (Tuple[float, float]): Position to draw rectangle
+            width (float): Width of the rectangle
+            height (float): Height of the rectangle
+            fill (Union[str, int, Tuple[int, int, int]], optional): Fill color of the rectangle. Defaults to None.
+            color (Union[str, int, Tuple[int, int, int]], optional): Alias of fill.
+            outline (Union[str, int, Tuple[int, int, int]], optional): Outline color of the rectangle. Defaults to None.
+            stroke_width (float, optional): Width of the outline. Defaults to 1.
+            radius (int, optional): Radius of the rectangle. Defaults to 0.
+        
+        Returns:
+            Editor: Editor object
+        """
         draw = ImageDraw.Draw(self.image)
 
         to_width = width + position[0]
@@ -252,8 +345,23 @@ class Editor:
         outline: Union[str, int, Tuple[int, int, int]] = None,
         stroke_width: float = 1,
         radius: int = 0,
-    ):
-        """Make progerss bar"""
+    ) -> Editor:
+        """Make progerss bar
+        
+        Args:
+            position (Tuple[float, float]): Position to draw bar
+            max_width (Union[int, float]): Max width of the bar
+            height (Union[int, float]): Height of the bar
+            percentage (int, optional): Percentage of the bar. Defaults to 1.
+            fill (Union[str, int, Tuple[int, int, int]], optional): Fill color of the bar. Defaults to None.
+            color (Union[str, int, Tuple[int, int, int]], optional): Alias of fill.
+            outline (Union[str, int, Tuple[int, int, int]], optional): Outline color of the bar. Defaults to None.
+            stroke_width (float, optional): Width of the outline. Defaults to 1.
+            radius (int, optional): Radius of the bar. Defaults to 0.
+        
+        Returns:
+            Editor: Editor object
+        """
         draw = ImageDraw.Draw(self.image)
 
         if color:
@@ -291,7 +399,21 @@ class Editor:
         fill: Union[str, int, Tuple[int, int, int]] = None,
         color: Union[str, int, Tuple[int, int, int]] = None,
         stroke_width: float = 1,
-    ):
+    ) -> Editor:
+        """Make rounded progress bar
+        
+        Args:
+            position (Tuple[float, float]): Position to draw bar
+            width (Union[int, float]): Width of the bar
+            height (Union[int, float]): Height of the bar
+            percentage (float): Percentage of the bar
+            fill (Union[str, int, Tuple[int, int, int]], optional): Fill color of the bar. Defaults to None.
+            color (Union[str, int, Tuple[int, int, int]], optional): Alias of fill.
+            stroke_width (float, optional): Width of the outline. Defaults to 1.
+        
+        Returns:
+            Editor: Editor object
+        """
         draw = ImageDraw.Draw(self.image)
 
         if color:
@@ -319,8 +441,21 @@ class Editor:
         color: Union[str, int, Tuple[int, int, int]] = None,
         outline: Union[str, int, Tuple[int, int, int]] = None,
         stroke_width: float = 1,
-    ):
-        """Make ellipse"""
+    ) -> Editor:
+        """Draw ellipse into image
+        
+        Args:
+            position (Tuple[float, float]): Position to draw ellipse
+            width (float): Width of the ellipse
+            height (float): Height of the ellipse
+            fill (Union[str, int, Tuple[int, int, int]], optional): Fill color of the ellipse. Defaults to None.
+            color (Union[str, int, Tuple[int, int, int]], optional): Alias of fill.
+            outline (Union[str, int, Tuple[int, int, int]], optional): Outline color of the ellipse. Defaults to None.
+            stroke_width (float, optional): Width of the outline. Defaults to 1.
+        
+        Returns:
+            Editor: Editor object
+        """
         draw = ImageDraw.Draw(self.image)
         to_width = width + position[0]
         to_height = height + position[1]
@@ -343,8 +478,18 @@ class Editor:
         fill: Union[str, int, Tuple[int, int, int]] = None,
         color: Union[str, int, Tuple[int, int, int]] = None,
         outline: Union[str, int, Tuple[int, int, int]] = None,
-    ):
-        """Make polygon"""
+    ) -> Editor:
+        """Draw polygon into image
+        
+        Args:
+            cordinates (list): Cordinates of the polygon
+            fill (Union[str, int, Tuple[int, int, int]], optional): Fill color of the polygon. Defaults to None.
+            color (Union[str, int, Tuple[int, int, int]], optional): Alias of fill.
+            outline (Union[str, int, Tuple[int, int, int]], optional): Outline color of the polygon. Defaults to None.
+        
+        Returns:
+            Editor: Editor object
+        """
         if color:
             fill = color
 
@@ -363,8 +508,22 @@ class Editor:
         fill: Union[str, int, Tuple[int, int, int]] = None,
         color: Union[str, int, Tuple[int, int, int]] = None,
         stroke_width: float = 1,
-    ):
-        """Make arc"""
+    ) -> Editor:
+        """Draw arc into image
+        
+        Args:
+            position (Tuple[float, float]): Position to draw arc
+            width (float): Width of the arc
+            height (float): Height of the arc
+            start (float): Start angle of the arc
+            rotation (float): Rotation of the arc
+            fill (Union[str, int, Tuple[int, int, int]], optional): Fill color of the arc. Defaults to None.
+            color (Union[str, int, Tuple[int, int, int]], optional): Alias of fill.
+            stroke_width (float, optional): Width of the outline. Defaults to 1.
+
+        Returns:
+            Editor: Editor object
+        """
         draw = ImageDraw.Draw(self.image)
 
         start = start - 90
@@ -387,6 +546,11 @@ class Editor:
         """Show the image."""
         self.image.show()
 
-    def save(self, fp, format=None, **params):
-        """Save the image"""
+    def save(self, fp, format:str=None, **params):
+        """Save the image
+        
+        Args:
+            fp (str): File path to save image
+            format (str, optional): Image format. Defaults to None.
+        """
         self.image.save(fp, format, **params)
