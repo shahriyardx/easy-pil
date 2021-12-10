@@ -23,10 +23,10 @@ A quick example of how easy-pil works
 
 .. code-block:: python3
 
-    from easy_pil import Edior, Canvas
+    from easy_pil import Editor, Canvas
 
     board = Canvas(width=500, height=500)
-    editor = Editor(canvas)
+    editor = Editor(board)
 
     editor.text((10, 10), "Hello World")
     editor.show() # .save() to save the image
