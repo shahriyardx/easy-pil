@@ -23,7 +23,7 @@ def load_image(link: str):
 
     :param link: Image link
     :type link: str
-    :return: Image from the provided (link if any)
+    :return: Image from the provided link (if any)
     :rtype: PIL.Image.Image
     """
     _bytes = BytesIO(requests.get(link).content)
@@ -37,7 +37,7 @@ async def load_image_async(link: str):
 
     :param link: Image link
     :type link: str
-    :return: Image from the provided (link if any)
+    :return: Image from the provided link (if any)
     :rtype: PIL.Image.Image
     """
     async with aiohttp.ClientSession() as session:
