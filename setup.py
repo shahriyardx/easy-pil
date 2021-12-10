@@ -41,6 +41,7 @@ setup(
     python_requires=">=3.7, <4",
     install_requires=requirements,
     project_urls={
+        "Documentation": "https://easy-pil.readthedocs.io/en/latest/",
         "Bug Reports": "https://github.com/shahriyardx/easy-pil/issues",
         "Source": "https://github.com/shahriyardx/easy-pil/",
     },
