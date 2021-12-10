@@ -51,7 +51,7 @@ class Font:
         :type variant: Literal["regular", "bold", "italic", "light"], optional
         :param size: Font size, defaults to 10
         :type size: int, optional
-        :return: FreeTypeFont class
+        :return: FreeTypeFont object
         :rtype: ImageFont.FreeTypeFont
         """
         return ImageFont.truetype(fonts_path["poppins"][variant], size=size)
@@ -67,7 +67,7 @@ class Font:
         :type variant: Literal["regular", "bold", "italic", "light"], optional
         :param size: Font size, defaults to 10
         :type size: int, optional
-        :return: FreeTypeFont class
+        :return: FreeTypeFont object
         :rtype: ImageFont.FreeTypeFont
         """
         return ImageFont.truetype(fonts_path["caveat"][variant], size=size)
@@ -83,7 +83,7 @@ class Font:
         :type variant: Literal["regular", "bold", "italic", "light"], optional
         :param size: Font size, defaults to 10
         :type size: int, optional
-        :return: FreeTypeFont class
+        :return: FreeTypeFont object
         :rtype: ImageFont.FreeTypeFont
         """
         return ImageFont.truetype(fonts_path["montserrat"][variant], size=size)

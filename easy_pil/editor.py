@@ -13,7 +13,11 @@ from .text import Text
 
 class Editor:
     def __init__(self, image: Union[Image.Image, str, Editor, Canvas]) -> None:
+        """Editor class. It does all the editing operations.
 
+        :param image: Image or Canvas to edit.
+        :type image: Union[Image.Image, str, Editor, Canvas]
+        """
         if isinstance(image, str):
             self.image = Image.open(image)
         elif isinstance(image, Canvas) or isinstance(image, Editor):
@@ -25,10 +29,9 @@ class Editor:
 
     @property
     def image_bytes(self) -> BytesIO:
-        """
-        Return image bytes
+        """Return image bytes
 
-        :return: Bytes of image
+        :return: Bytes from the image of Editor
         :rtype: BytesIO
         """
         _bytes = BytesIO()
@@ -44,8 +47,6 @@ class Editor:
         :type size: Tuple[float, float]
         :param crop: Crop the image, defaults to False
         :type crop: bool, optional
-        :return: Editor class
-        :rtype: Editor
         """
         if not crop:
             self.image = self.image.resize(size, Image.ANTIALIAS)
@@ -79,8 +80,6 @@ class Editor:
         :type radius: int, optional
         :param offset: Offset pixel while making rounded, defaults to 2
         :type offset: int, optional
-        :return: Editor class
-        :rtype: Editor
         """
         background = Image.new("RGBA", size=self.image.size, color=(255, 255, 255, 0))
         holder = Image.new("RGBA", size=self.image.size, color=(255, 255, 255, 0))
@@ -97,11 +96,7 @@ class Editor:
         return self
 
     def circle_image(self) -> Editor:
-        """Make image circle
-
-        :return: Editor class
-        :rtype: Editor
-        """
+        """Make image circle"""
         background = Image.new("RGBA", size=self.image.size, color=(255, 255, 255, 0))
         holder = Image.new("RGBA", size=self.image.size, color=(255, 255, 255, 0))
         mask = Image.new("RGBA", size=self.image.size, color=(255, 255, 255, 0))
@@ -119,8 +114,6 @@ class Editor:
         :type deg: float, optional
         :param expand: Expand while rotating, defaults to False
         :type expand: bool, optional
-        :return: Editor class
-        :rtype: Editor
         """
         self.image = self.image.rotate(angle=deg, expand=expand)
 
@@ -133,8 +126,6 @@ class Editor:
         :type mode: Literal[, optional
         :param amount: Amount of blur, defaults to 1
         :type amount: float, optional
-        :return: Editor class
-        :rtype: Editor
         """
         if mode == "box":
             self.image = self.image.filter(ImageFilter.BoxBlur(radius=amount))
@@ -157,8 +148,6 @@ class Editor:
         :type alpha: float, optional
         :param on_top: Places image on top, defaults to False
         :type on_top: bool, optional
-        :return: Editor class
-        :rtype: Editor
         """
         if isinstance(image, Editor) or isinstance(image, Canvas):
             image = image.image
@@ -182,8 +171,6 @@ class Editor:
         :type image: Union[Image.Image, Editor, Canvas]
         :param position: Position to paste
         :type position: Tuple[float, float]
-        :return: Editor class
-        :rtype: Editor
         """
         blank = Image.new("RGBA", size=self.image.size, color=(255, 255, 255, 0))
 
@@ -215,8 +202,6 @@ class Editor:
         :type color: Union[Tuple[int, int, int], str, int], optional
         :param align: Align text, defaults to "left"
         :type align: Literal["left", "center", "right"], optional
-        :return: Editor class
-        :rtype: Editor
         """
         if isinstance(font, Font):
             font = font.font
@@ -245,8 +230,6 @@ class Editor:
         :type space_separated: bool, optional
         :param align: Align texts, defaults to "left"
         :type align: Literal["left", "center", "right"], optional
-        :return: [description]
-        :rtype: Editor
         """
         draw = ImageDraw.Draw(self.image)
 
@@ -316,8 +299,6 @@ class Editor:
         :type stroke_width: float, optional
         :param radius: Radius of rectangle, defaults to 0
         :type radius: int, optional
-        :return: Edittor class
-        :rtype: Editor
         """
         draw = ImageDraw.Draw(self.image)
 
@@ -377,8 +358,6 @@ class Editor:
         :type stroke_width: float, optional
         :param radius: Radius of the bar, defaults to 0
         :type radius: int, optional
-        :return: Editor class
-        :rtype: Editor
         """
         draw = ImageDraw.Draw(self.image)
 
@@ -434,8 +413,6 @@ class Editor:
         :type color: Union[str, int, Tuple[int, int, int]], optional
         :param stroke_width: Stroke width, defaults to 1
         :type stroke_width: float, optional
-        :return: Editot class
-        :rtype: Editor
         """
         draw = ImageDraw.Draw(self.image)
 
@@ -481,8 +458,6 @@ class Editor:
         :type outline: Union[str, int, Tuple[int, int, int]], optional
         :param stroke_width: Stroke width, defaults to 1
         :type stroke_width: float, optional
-        :return: Editor class
-        :rtype: Editor
         """
         draw = ImageDraw.Draw(self.image)
         to_width = width + position[0]
@@ -517,8 +492,6 @@ class Editor:
         :type color: Union[str, int, Tuple[int, int, int]], optional
         :param outline: Outline color, defaults to None
         :type outline: Union[str, int, Tuple[int, int, int]], optional
-        :return: Editor class
-        :rtype: Editor
         """
         if color:
             fill = color
@@ -557,8 +530,6 @@ class Editor:
         :type color: Union[str, int, Tuple[int, int, int]], optional
         :param stroke_width: Stroke width, defaults to 1
         :type stroke_width: float, optional
-        :return: Editor class
-        :rtype: Editor
         """
         draw = ImageDraw.Draw(self.image)
 

@@ -12,8 +12,6 @@ async def run_in_executor(func, **kwargs):
 
     :param func: Function to run
     :type func: func
-    :return: Any
-    :rtype: Any
     """
     func = functools.partial(func, **kwargs)
     data = await asyncio.get_event_loop().run_in_executor(None, func)
@@ -25,8 +23,8 @@ def load_image(link: str):
 
     :param link: Image link
     :type link: str
-    :return: Image from link
-    :rtype: Image.Image
+    :return: Image from the provided (link if any)
+    :rtype: PIL.Image.Image
     """
     _bytes = BytesIO(requests.get(link).content)
     image = Image.open(_bytes).convert("RGBA")
@@ -39,8 +37,8 @@ async def load_image_async(link: str):
 
     :param link: Image link
     :type link: str
-    :return: Image from link
-    :rtype: Image.Image
+    :return: Image from the provided (link if any)
+    :rtype: PIL.Image.Image
     """
     async with aiohttp.ClientSession() as session:
         async with session.get(link) as response:

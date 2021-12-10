@@ -14,9 +14,7 @@ class Canvas:
     :type height: float, optional
     :param color: Color of image, defaults to None
     :type color: Union[Tuple[int, int, int], str, int], optional
-    :raises ValueError: When either size or width and height is not a provided
-    :return: None
-    :rtype: None
+    :raises ValueError: When either ``size`` or ``width and height`` is not a provided
     """
     def __init__(
         self,
