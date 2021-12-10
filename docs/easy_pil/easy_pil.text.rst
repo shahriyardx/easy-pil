@@ -1,6 +1,6 @@
 Text
 =====================
 
-.. autoclass:: easy_pil.Text
+.. autoclass:: easy_pil.text.Text
    :members:
    :undoc-members:
