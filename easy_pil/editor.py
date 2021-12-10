@@ -12,9 +12,8 @@ from .text import Text
 
 
 class Editor:
-    """Editor to edit and manipulate images"""
-
     def __init__(self, image: Union[Image.Image, str, Editor, Canvas]) -> None:
+
         if isinstance(image, str):
             self.image = Image.open(image)
         elif isinstance(image, Canvas) or isinstance(image, Editor):
@@ -26,10 +25,11 @@ class Editor:
 
     @property
     def image_bytes(self) -> BytesIO:
-        """Return image as bytes
-        
-        Returns:
-            BytesIO: Image as bytes
+        """
+        Return image bytes
+
+        :return: Bytes of image
+        :rtype: BytesIO
         """
         _bytes = BytesIO()
         self.image.save(_bytes, "png")
@@ -38,14 +38,14 @@ class Editor:
         return _bytes
 
     def resize(self, size: Tuple[float, float], crop=False) -> Editor:
-        """Resize an image to given size
-        
-        Args:
-            size (Tuple[float, float]): Size of the image
-            crop (bool, optional): Crop image to given size. Defaults to False.
-        
-        Returns:
-            Editor: Editor object
+        """Resize image
+
+        :param size: Size to resize to
+        :type size: Tuple[float, float]
+        :param crop: Crop the image, defaults to False
+        :type crop: bool, optional
+        :return: Editor class
+        :rtype: Editor
         """
         if not crop:
             self.image = self.image.resize(size, Image.ANTIALIAS)
@@ -73,14 +73,14 @@ class Editor:
         return self
 
     def rounded_corners(self, radius: int = 10, offset: int = 2) -> Editor:
-        """Add rounded corners to image
-        
-        Args:
-            radius (int, optional): Radius of the corners. Defaults to 10.
-            offset (int, optional): Offset of the corners. Defaults to 2.
-        
-        Returns:
-            Editor: Editor object
+        """Make image rounded corners
+
+        :param radius: Radius of roundness, defaults to 10
+        :type radius: int, optional
+        :param offset: Offset pixel while making rounded, defaults to 2
+        :type offset: int, optional
+        :return: Editor class
+        :rtype: Editor
         """
         background = Image.new("RGBA", size=self.image.size, color=(255, 255, 255, 0))
         holder = Image.new("RGBA", size=self.image.size, color=(255, 255, 255, 0))
@@ -97,10 +97,10 @@ class Editor:
         return self
 
     def circle_image(self) -> Editor:
-        """Make image circular
-        
-        Returns:
-            Editor: Editor object
+        """Make image circle
+
+        :return: Editor class
+        :rtype: Editor
         """
         background = Image.new("RGBA", size=self.image.size, color=(255, 255, 255, 0))
         holder = Image.new("RGBA", size=self.image.size, color=(255, 255, 255, 0))
@@ -112,15 +112,15 @@ class Editor:
 
         return self
 
-    def rotate(self, deg: float = 0, expand: bool = False):
-        """Rotate image to given degree
-        
-        Args:
-            deg (float, optional): Degree to rotate. Defaults to 0.
-            expand (bool, optional): Expand image to fit rotated image. Defaults to False.
+    def rotate(self, deg: float = 0, expand: bool = False) -> Editor:
+        """Rotate image
 
-        Returns:
-            Editor: Editor object
+        :param deg: Degress to rotate, defaults to 0
+        :type deg: float, optional
+        :param expand: Expand while rotating, defaults to False
+        :type expand: bool, optional
+        :return: Editor class
+        :rtype: Editor
         """
         self.image = self.image.rotate(angle=deg, expand=expand)
 
@@ -128,15 +128,14 @@ class Editor:
 
     def blur(self, mode: Literal["box", "gussian"] = "gussian", amount: float = 1) -> Editor:
         """Blur image
-        
-        Args:
-            mode (Literal['box', 'gussian'], optional): Blur mode. Defaults to 'gussian'.
-            amount (float, optional): Amount of blur. Defaults to 1.
-        
-        Returns:
-            Editor: Editor object
-        """
 
+        :param mode: Blur mode, defaults to "gussian"
+        :type mode: Literal[, optional
+        :param amount: Amount of blur, defaults to 1
+        :type amount: float, optional
+        :return: Editor class
+        :rtype: Editor
+        """
         if mode == "box":
             self.image = self.image.filter(ImageFilter.BoxBlur(radius=amount))
         if mode == "gussian":
@@ -150,15 +149,16 @@ class Editor:
         alpha: float = 0.0,
         on_top: bool = False,
     ) -> Editor:
-        """Blend image into another one
-        
-        Args:
-            image (Union[Image.Image, Editor, Canvas]): Image to blend into
-            alpha (float, optional): Alpha of the image. Defaults to 0.0.
-            on_top (bool, optional): Blend image on top of another image. Defaults to False.
-        
-        Returns:
-            Editor: Editor object
+        """Blend image into editor image
+
+        :param image: Image to blend
+        :type image: Union[Image.Image, Editor, Canvas]
+        :param alpha: Alpha amount, defaults to 0.0
+        :type alpha: float, optional
+        :param on_top: Places image on top, defaults to False
+        :type on_top: bool, optional
+        :return: Editor class
+        :rtype: Editor
         """
         if isinstance(image, Editor) or isinstance(image, Canvas):
             image = image.image
@@ -176,14 +176,14 @@ class Editor:
     def paste(
         self, image: Union[Image.Image, Editor, Canvas], position: Tuple[float, float]
     ) -> Editor:
-        """Paste image into another
-        
-        Args:
-            image (Union[Image.Image, Editor, Canvas]): Image to paste
-            position (Tuple[float, float]): Position to paste image
-        
-        Returns:
-            Editor: Editor object
+        """Paste image
+
+        :param image: Image to paste
+        :type image: Union[Image.Image, Editor, Canvas]
+        :param position: Position to paste
+        :type position: Tuple[float, float]
+        :return: Editor class
+        :rtype: Editor
         """
         blank = Image.new("RGBA", size=self.image.size, color=(255, 255, 255, 0))
 
@@ -204,16 +204,19 @@ class Editor:
         align: Literal["left", "center", "right"] = "left",
     ) -> Editor:
         """Draw text into image
-        
-        Args:
-            position (Tuple[float, float]): Position to draw text
-            text (str): Text to draw
-            font (Union[ImageFont.FreeTypeFont, Font], optional): Font to use. Defaults to None.
-            color (Union[Tuple[int, int, int], str, int], optional): Color of the text. Defaults to "black".
-            align (Literal['left', 'center', 'right'], optional): Alignment of the text. Defaults to "left".
-        
-        Returns:
-            Editor: Editor object
+
+        :param position: Position to draw text
+        :type position: Tuple[float, float]
+        :param text: Text to draw
+        :type text: str
+        :param font: Font used for text, defaults to None
+        :type font: Union[ImageFont.FreeTypeFont, Font], optional
+        :param color: Color of the font, defaults to "black"
+        :type color: Union[Tuple[int, int, int], str, int], optional
+        :param align: Align text, defaults to "left"
+        :type align: Literal["left", "center", "right"], optional
+        :return: Editor class
+        :rtype: Editor
         """
         if isinstance(font, Font):
             font = font.font
@@ -232,16 +235,18 @@ class Editor:
         space_separated: bool = True,
         align: Literal["left", "center", "right"] = "left",
     ) -> Editor:
-        """Draw text with multiple color
-        
-        Args:
-            position (Tuple[float, float]): Position to draw text
-            texts (List[Text]): Texts to draw
-            space_separated (bool, optional): Separate text with space. Defaults to True.
-            align (Literal['left', 'center', 'right'], optional): Alignment of the text. Defaults to "left".
-        
-        Returns:
-            Editor: Editor object
+        """Draw multicolor text
+
+        :param position: Position to draw text
+        :type position: Tuple[float, float]
+        :param texts: List of texts
+        :type texts: List[Text]
+        :param space_separated: Separate texts with space, defaults to True
+        :type space_separated: bool, optional
+        :param align: Align texts, defaults to "left"
+        :type align: Literal["left", "center", "right"], optional
+        :return: [description]
+        :rtype: Editor
         """
         draw = ImageDraw.Draw(self.image)
 
@@ -294,19 +299,25 @@ class Editor:
         radius: int = 0,
     ) -> Editor:
         """Draw rectangle into image
-        
-        Args: 
-            position (Tuple[float, float]): Position to draw rectangle
-            width (float): Width of the rectangle
-            height (float): Height of the rectangle
-            fill (Union[str, int, Tuple[int, int, int]], optional): Fill color of the rectangle. Defaults to None.
-            color (Union[str, int, Tuple[int, int, int]], optional): Alias of fill.
-            outline (Union[str, int, Tuple[int, int, int]], optional): Outline color of the rectangle. Defaults to None.
-            stroke_width (float, optional): Width of the outline. Defaults to 1.
-            radius (int, optional): Radius of the rectangle. Defaults to 0.
-        
-        Returns:
-            Editor: Editor object
+
+        :param position: Position to draw recangle
+        :type position: Tuple[float, float]
+        :param width: Width of rectangle
+        :type width: float
+        :param height: Height of rectangle
+        :type height: float
+        :param fill: Fill color, defaults to None
+        :type fill: Union[str, int, Tuple[int, int, int]], optional
+        :param color: Alias of fill, defaults to None
+        :type color: Union[str, int, Tuple[int, int, int]], optional
+        :param outline: Outline color, defaults to None
+        :type outline: Union[str, int, Tuple[int, int, int]], optional
+        :param stroke_width: Stroke width, defaults to 1
+        :type stroke_width: float, optional
+        :param radius: Radius of rectangle, defaults to 0
+        :type radius: int, optional
+        :return: Edittor class
+        :rtype: Editor
         """
         draw = ImageDraw.Draw(self.image)
 
@@ -346,21 +357,28 @@ class Editor:
         stroke_width: float = 1,
         radius: int = 0,
     ) -> Editor:
-        """Make progerss bar
-        
-        Args:
-            position (Tuple[float, float]): Position to draw bar
-            max_width (Union[int, float]): Max width of the bar
-            height (Union[int, float]): Height of the bar
-            percentage (int, optional): Percentage of the bar. Defaults to 1.
-            fill (Union[str, int, Tuple[int, int, int]], optional): Fill color of the bar. Defaults to None.
-            color (Union[str, int, Tuple[int, int, int]], optional): Alias of fill.
-            outline (Union[str, int, Tuple[int, int, int]], optional): Outline color of the bar. Defaults to None.
-            stroke_width (float, optional): Width of the outline. Defaults to 1.
-            radius (int, optional): Radius of the bar. Defaults to 0.
-        
-        Returns:
-            Editor: Editor object
+        """Draw a progress bar
+
+        :param position: Position to draw bar
+        :type position: Tuple[float, float]
+        :param max_width: Max width of the bar
+        :type max_width: Union[int, float]
+        :param height: Height of the bar
+        :type height: Union[int, float]
+        :param percentage: Percebtage to fill of the bar, defaults to 1
+        :type percentage: int, optional
+        :param fill: Fill color, defaults to None
+        :type fill: Union[str, int, Tuple[int, int, int]], optional
+        :param color: Alias of fill, defaults to None
+        :type color: Union[str, int, Tuple[int, int, int]], optional
+        :param outline: Outline color, defaults to None
+        :type outline: Union[str, int, Tuple[int, int, int]], optional
+        :param stroke_width: Stroke width, defaults to 1
+        :type stroke_width: float, optional
+        :param radius: Radius of the bar, defaults to 0
+        :type radius: int, optional
+        :return: Editor class
+        :rtype: Editor
         """
         draw = ImageDraw.Draw(self.image)
 
@@ -400,19 +418,24 @@ class Editor:
         color: Union[str, int, Tuple[int, int, int]] = None,
         stroke_width: float = 1,
     ) -> Editor:
-        """Make rounded progress bar
-        
-        Args:
-            position (Tuple[float, float]): Position to draw bar
-            width (Union[int, float]): Width of the bar
-            height (Union[int, float]): Height of the bar
-            percentage (float): Percentage of the bar
-            fill (Union[str, int, Tuple[int, int, int]], optional): Fill color of the bar. Defaults to None.
-            color (Union[str, int, Tuple[int, int, int]], optional): Alias of fill.
-            stroke_width (float, optional): Width of the outline. Defaults to 1.
-        
-        Returns:
-            Editor: Editor object
+        """Draw a rounded bar
+
+        :param position: Position to draw rounded bar
+        :type position: Tuple[float, float]
+        :param width: Width of the bar
+        :type width: Union[int, float]
+        :param height: Height of the bar
+        :type height: Union[int, float]
+        :param percentage: Percentage to fill
+        :type percentage: float
+        :param fill: Fill color, defaults to None
+        :type fill: Union[str, int, Tuple[int, int, int]], optional
+        :param color: Alias of color, defaults to None
+        :type color: Union[str, int, Tuple[int, int, int]], optional
+        :param stroke_width: Stroke width, defaults to 1
+        :type stroke_width: float, optional
+        :return: Editot class
+        :rtype: Editor
         """
         draw = ImageDraw.Draw(self.image)
 
@@ -442,19 +465,24 @@ class Editor:
         outline: Union[str, int, Tuple[int, int, int]] = None,
         stroke_width: float = 1,
     ) -> Editor:
-        """Draw ellipse into image
-        
-        Args:
-            position (Tuple[float, float]): Position to draw ellipse
-            width (float): Width of the ellipse
-            height (float): Height of the ellipse
-            fill (Union[str, int, Tuple[int, int, int]], optional): Fill color of the ellipse. Defaults to None.
-            color (Union[str, int, Tuple[int, int, int]], optional): Alias of fill.
-            outline (Union[str, int, Tuple[int, int, int]], optional): Outline color of the ellipse. Defaults to None.
-            stroke_width (float, optional): Width of the outline. Defaults to 1.
-        
-        Returns:
-            Editor: Editor object
+        """Draw an ellipse
+
+        :param position: Position to draw ellipse
+        :type position: Tuple[float, float]
+        :param width: Width of ellipse
+        :type width: float
+        :param height: Height of ellipse
+        :type height: float
+        :param fill: Fill color, defaults to None
+        :type fill: Union[str, int, Tuple[int, int, int]], optional
+        :param color: Alias of fill, defaults to None
+        :type color: Union[str, int, Tuple[int, int, int]], optional
+        :param outline: Outline color, defaults to None
+        :type outline: Union[str, int, Tuple[int, int, int]], optional
+        :param stroke_width: Stroke width, defaults to 1
+        :type stroke_width: float, optional
+        :return: Editor class
+        :rtype: Editor
         """
         draw = ImageDraw.Draw(self.image)
         to_width = width + position[0]
@@ -479,16 +507,18 @@ class Editor:
         color: Union[str, int, Tuple[int, int, int]] = None,
         outline: Union[str, int, Tuple[int, int, int]] = None,
     ) -> Editor:
-        """Draw polygon into image
-        
-        Args:
-            cordinates (list): Cordinates of the polygon
-            fill (Union[str, int, Tuple[int, int, int]], optional): Fill color of the polygon. Defaults to None.
-            color (Union[str, int, Tuple[int, int, int]], optional): Alias of fill.
-            outline (Union[str, int, Tuple[int, int, int]], optional): Outline color of the polygon. Defaults to None.
-        
-        Returns:
-            Editor: Editor object
+        """Draw a polygon
+
+        :param cordinates: Cordinates to draw
+        :type cordinates: list
+        :param fill: Fill color, defaults to None
+        :type fill: Union[str, int, Tuple[int, int, int]], optional
+        :param color: Alias of fill, defaults to None
+        :type color: Union[str, int, Tuple[int, int, int]], optional
+        :param outline: Outline color, defaults to None
+        :type outline: Union[str, int, Tuple[int, int, int]], optional
+        :return: Editor class
+        :rtype: Editor
         """
         if color:
             fill = color
@@ -509,20 +539,26 @@ class Editor:
         color: Union[str, int, Tuple[int, int, int]] = None,
         stroke_width: float = 1,
     ) -> Editor:
-        """Draw arc into image
-        
-        Args:
-            position (Tuple[float, float]): Position to draw arc
-            width (float): Width of the arc
-            height (float): Height of the arc
-            start (float): Start angle of the arc
-            rotation (float): Rotation of the arc
-            fill (Union[str, int, Tuple[int, int, int]], optional): Fill color of the arc. Defaults to None.
-            color (Union[str, int, Tuple[int, int, int]], optional): Alias of fill.
-            stroke_width (float, optional): Width of the outline. Defaults to 1.
+        """Draw arc
 
-        Returns:
-            Editor: Editor object
+        :param position: Position to draw arc
+        :type position: Tuple[float, float]
+        :param width: Width or arc
+        :type width: float
+        :param height: Height of arch
+        :type height: float
+        :param start: Start position of arch
+        :type start: float
+        :param rotation: Rotation in degre
+        :type rotation: float
+        :param fill: Fill color, defaults to None
+        :type fill: Union[str, int, Tuple[int, int, int]], optional
+        :param color: Alias of fill, defaults to None
+        :type color: Union[str, int, Tuple[int, int, int]], optional
+        :param stroke_width: Stroke width, defaults to 1
+        :type stroke_width: float, optional
+        :return: Editor class
+        :rtype: Editor
         """
         draw = ImageDraw.Draw(self.image)
 
@@ -548,9 +584,10 @@ class Editor:
 
     def save(self, fp, format:str=None, **params):
         """Save the image
-        
-        Args:
-            fp (str): File path to save image
-            format (str, optional): Image format. Defaults to None.
+
+        :param fp: File path
+        :type fp: str
+        :param format: File format, defaults to None
+        :type format: str, optional
         """
         self.image.save(fp, format, **params)

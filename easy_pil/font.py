@@ -30,14 +30,11 @@ fonts_path = {
 
 class Font:
     """Font class
-    
-    Args:
-        path (str): Path to font file
-        size (int, optional): Font size. Defaults to 10.
-        **kwargs: Additional arguments for ImageFont.truetype
 
-    Returns:
-        Font: Font object
+    :param path: Path of font
+    :type path: str
+    :param size: Size of font, defaults to 10
+    :type size: int, optional
     """
 
     def __init__(self, path: str, size: int = 10, **kwargs) -> None:
@@ -49,13 +46,13 @@ class Font:
         size: int = 10,
     ):
         """Poppins font
-        
-        Args:
-            variant (str, optional): Font variant. Defaults to "regular".
-            size (int, optional): Font size. Defaults to 10.
 
-        Returns:
-            ImageFont.FreeTypeFont: Font object
+        :param variant: Variant, defaults to "regular"
+        :type variant: Literal["regular", "bold", "italic", "light"], optional
+        :param size: Font size, defaults to 10
+        :type size: int, optional
+        :return: FreeTypeFont class
+        :rtype: ImageFont.FreeTypeFont
         """
         return ImageFont.truetype(fonts_path["poppins"][variant], size=size)
 
@@ -66,12 +63,12 @@ class Font:
     ):
         """Caveat font
 
-        Args:
-            variant (str, optional): Font variant. Defaults to "regular".
-            size (int, optional): Font size. Defaults to 10.
-
-        Returns:
-            ImageFont.FreeTypeFont: Font object
+        :param variant: Variant of font, defaults to "regular"
+        :type variant: Literal["regular", "bold", "italic", "light"], optional
+        :param size: Font size, defaults to 10
+        :type size: int, optional
+        :return: FreeTypeFont class
+        :rtype: ImageFont.FreeTypeFont
         """
         return ImageFont.truetype(fonts_path["caveat"][variant], size=size)
 
@@ -82,11 +79,11 @@ class Font:
     ):
         """Montserrat font
 
-        Args:
-            variant (str, optional): Font variant. Defaults to "regular".
-            size (int, optional): Font size. Defaults to 10.
-
-        Returns:
-            ImageFont.FreeTypeFont: Font object
+        :param variant: Variant of font, defaults to "regular"
+        :type variant: Literal["regular", "bold", "italic", "light"], optional
+        :param size: Font size, defaults to 10
+        :type size: int, optional
+        :return: FreeTypeFont class
+        :rtype: ImageFont.FreeTypeFont
         """
         return ImageFont.truetype(fonts_path["montserrat"][variant], size=size)

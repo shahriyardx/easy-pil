@@ -4,16 +4,19 @@ from PIL import Image
 
 
 class Canvas:
-    """Generate blank image with given size and color
-        
-    Arguments:
-        size {Tuple[float, float]} -- size of image (default: {None})
-        width {float} -- width of image (default: {None})
-        height {float} -- height of image (default: {None})
-        color {Union[Tuple[int, int, int], str, int]} -- color of image (default: {None})
+    """Canvas class
 
-    Returns:
-        None
+    :param size: Size of image, defaults to None
+    :type size: Tuple[float, float], optional
+    :param width: Width of image, defaults to None
+    :type width: float, optional
+    :param height: Height of image, defaults to None
+    :type height: float, optional
+    :param color: Color of image, defaults to None
+    :type color: Union[Tuple[int, int, int], str, int], optional
+    :raises ValueError: When either size or width and height is not a provided
+    :return: None
+    :rtype: None
     """
     def __init__(
         self,
@@ -22,7 +25,6 @@ class Canvas:
         height: float = None,
         color: Union[Tuple[int, int, int], str, int] = None,
     ) -> None:
-        """Generate blank image with given size and color"""
         if not size and not width and not height:
             raise ValueError("size, width, and height cannot all be None")
         
