@@ -38,7 +38,7 @@ setup(
     package_data={
         "easy_pil": ["fonts/*/*.ttf"],
     },
-    python_requires=">=3.6, <4",
+    python_requires=">=3.7, <4",
     install_requires=requirements,
     project_urls={
         "Bug Reports": "https://github.com/shahriyardx/easy-pil/issues",
