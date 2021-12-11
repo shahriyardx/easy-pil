@@ -1,6 +1,6 @@
 Welcome image [2]
 =========================
-Example of owo leveling card made using easy-pil
+Example of welcome image made using easy-pil
 
 
 .. code-block:: python3
