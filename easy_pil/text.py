@@ -6,13 +6,16 @@ from PIL import ImageFont
 class Text:
     """Text class
 
-    :param text: Text 
-    :type text: str
-    :param font: Font for text
-    :type font: ImageFont.FreeTypeFont
-    :param color: Font color, defaults to "black"
-    :type color: Union[Tuple[int, int, int], str, int], optional
+    Parameters
+    ----------
+    text : str
+        Text
+    font : ImageFont.FreeTypeFont
+        Font for text
+    color : Union[Tuple[int, int, int], str, int], optional
+        Font color, by default "black"
     """
+
     def __init__(
         self,
         text: str,

@@ -8,23 +8,30 @@ from PIL import Image
 
 
 async def run_in_executor(func, **kwargs):
-    """Run function is executor
+    """Run function in executor
 
-    :param func: Function to run
-    :type func: func
+    Parameters
+    ----------
+    func : func
+        Function to run
     """
     func = functools.partial(func, **kwargs)
     data = await asyncio.get_event_loop().run_in_executor(None, func)
     return data
 
 
-def load_image(link: str):
+def load_image(link: str) -> Image.Image:
     """Load image from link
 
-    :param link: Image link
-    :type link: str
-    :return: Image from the provided link (if any)
-    :rtype: PIL.Image.Image
+    Parameters
+    ----------
+    link : str
+        Image link
+
+    Returns
+    -------
+    PIL.Image.Image
+        Image from the provided link (if any)
     """
     _bytes = BytesIO(requests.get(link).content)
     image = Image.open(_bytes).convert("RGBA")
@@ -32,13 +39,18 @@ def load_image(link: str):
     return image
 
 
-async def load_image_async(link: str):
+async def load_image_async(link: str) -> Image.Image:
     """Load image from link (async)
 
-    :param link: Image link
-    :type link: str
-    :return: Image from the provided link (if any)
-    :rtype: PIL.Image.Image
+    Parameters
+    ----------
+    link : str
+        Image from the provided link (if any)
+
+    Returns
+    -------
+    PIL.Image.Image
+        Image link
     """
     async with aiohttp.ClientSession() as session:
         async with session.get(link) as response:

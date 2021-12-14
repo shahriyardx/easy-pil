@@ -6,29 +6,36 @@ from PIL import Image
 class Canvas:
     """Canvas class
 
-    :param size: Size of image, defaults to None
-    :type size: Tuple[float, float], optional
-    :param width: Width of image, defaults to None
-    :type width: float, optional
-    :param height: Height of image, defaults to None
-    :type height: float, optional
-    :param color: Color of image, defaults to None
-    :type color: Union[Tuple[int, int, int], str, int], optional
-    :raises ValueError: When either ``size`` or ``width and height`` is not a provided
+    Parameters
+    ----------
+    size : Tuple[float, float], optional
+        Size of image, by default None
+    width : float, optional
+        Width of image, by default None
+    height : float, optional
+        Height of image, by default None
+    color : Union[Tuple[int, int, int], str, int], optional
+        Color of image, by default None
+
+    Raises
+    ------
+    ValueError
+        When either ``size`` or ``width and height`` is not a provided
     """
+
     def __init__(
         self,
-        size: Tuple[float, float]=None,
+        size: Tuple[float, float] = None,
         width: float = None,
         height: float = None,
         color: Union[Tuple[int, int, int], str, int] = None,
     ) -> None:
         if not size and not width and not height:
             raise ValueError("size, width, and height cannot all be None")
-        
+
         if width and height:
             size = (width, height)
-        
+
         self.size = size
         self.color = color
 
