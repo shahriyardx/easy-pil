@@ -48,4 +48,4 @@ Example of a welcome image made using easy-pil
 
 Output
 ---------
-.. image:: /_static/examples/welcome_image2.png
+.. image:: /_static/examples/welcome_image1.png
