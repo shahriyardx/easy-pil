@@ -11,7 +11,7 @@ current_directory = Path(__file__).parent.resolve()
 long_description = (current_directory / "README.md").read_text(encoding="utf-8")
 
 vpath = current_directory / "easy_pil" / "_version.py"
-spec = spec_from_file_location(vpath.name.replace(".py", ""), vpath)
+spec = spec_from_file_location(vpath.name[:-3], vpath)
 mod = module_from_spec(spec)
 spec.loader.exec_module(mod)
 
@@ -32,6 +32,7 @@ setup(
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
     ],
     keywords="Pillow, PIL, Pillow wrapper, PIL wrapper, Easy Pillow, Easy PIL, discord rank card, discord card",
     packages=find_packages(),
