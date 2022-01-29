@@ -1,8 +1,8 @@
 # Easy PIL
-A python library built on top of PIL to easily edit images. 
+A python library built on top of [PIL](https://github.com/python-pillow/Pillow) to easily edit/modify images. 
 
 # Usage
-[Documentaion](https://easy-pil.readthedocs.io/en/latest/)
+[Documentation](https://easy-pil.readthedocs.io/en/latest/)
 
 [Examples](https://github.com/shahriyardx/easy-pil/tree/master/examples)
 
