@@ -95,7 +95,7 @@ class Editor:
         mask = Image.new("RGBA", size=self.image.size, color=(255, 255, 255, 0))
         mask_draw = ImageDraw.Draw(mask)
         mask_draw.rounded_rectangle(
-            (offset, offset) + (self.image.size[0] - 2, self.image.size[1] - offset),
+            (offset, offset) + (self.image.size[0] - offset, self.image.size[1] - offset),
             radius=radius,
             fill="black",
         )
