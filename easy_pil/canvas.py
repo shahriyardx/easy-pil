@@ -2,6 +2,7 @@ from typing import Tuple, Union
 
 from PIL import Image
 
+from .color import Color
 
 class Canvas:
     """Canvas class
@@ -14,7 +15,7 @@ class Canvas:
         Width of image, by default None
     height : float, optional
         Height of image, by default None
-    color : Union[Tuple[int, int, int], str, int], optional
+    color : Color, optional
         Color of image, by default None
 
     Raises
@@ -28,7 +29,7 @@ class Canvas:
         size: Tuple[float, float] = None,
         width: float = None,
         height: float = None,
-        color: Union[Tuple[int, int, int], str, int] = None,
+        color: Color = None,
     ) -> None:
         if not size and not width and not height:
             raise ValueError("size, width, and height cannot all be None")
