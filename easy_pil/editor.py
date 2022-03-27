@@ -20,7 +20,7 @@ class Editor:
         Image or Canvas to edit.
     """
 
-    def __init__(self, image: Union[Image.Image, str, BytesIO Editor, Canvas]) -> None:
+    def __init__(self, image: Union[Image.Image, str, BytesIO, Editor, Canvas]) -> None:
         if isinstance(image, str) or isinstance(image, BytesIO):
             self.image = Image.open(image)
         elif isinstance(image, Canvas) or isinstance(image, Editor):
