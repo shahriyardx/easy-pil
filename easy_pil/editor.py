@@ -288,7 +288,7 @@ class Editor:
             else:
                 width, _ = font.getsize(sentence)
 
-            draw.text(position, sentence, color, font=font)
+            draw.text(position, sentence, color, font=font, anchor="lm")
             position = (position[0] + width, position[1])
 
         return self
