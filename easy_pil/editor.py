@@ -234,7 +234,7 @@ class Editor:
 
         return self
 
-    def multicolor_text(
+    def multi_text(
         self,
         position: Tuple[float, float],
         texts: List[Text],

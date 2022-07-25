@@ -84,12 +84,12 @@ class TestEditor(unittest.TestCase):
         editor = Editor(canvas).paste(canvas2, (0, 0))
         self.assertIsInstance(editor, Editor)
 
-    def test_multicolor_text(self):
-        """Tests editor multicolor text"""
+    def test_multi_text(self):
+        """Tests editor multi text"""
         canvas = Canvas((200, 100), color="black")
         hello = Text("Hello ", color="white", font=Font.poppins(size=20))
         world = Text("World", color="white", font=Font.poppins(size=20))
-        editor = Editor(canvas).multicolor_text(
+        editor = Editor(canvas).multi_text(
             (0, 0), [hello, world], space_separated=False, align="left"
         )
         self.assertIsInstance(editor, Editor)

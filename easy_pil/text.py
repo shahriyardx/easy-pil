@@ -3,6 +3,7 @@ from typing import Tuple, Union
 from PIL import ImageFont
 
 from .color import Color
+from .font import Font
 
 class Text:
     """Text class
@@ -20,9 +21,14 @@ class Text:
     def __init__(
         self,
         text: str,
-        font: ImageFont.FreeTypeFont,
+        font: Union[ImageFont.FreeTypeFont, Font],
         color: Color = "black",
     ) -> None:
         self.text = text
-        self.font = font
         self.color = color
+
+        if isinstance(font, Font):
+            self.font = font.font
+        else:
+            self.font = font
+            
