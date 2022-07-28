@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Union, Tuple
 
-RGB = Union[tuple[int, int, int], tuple[int, int, int, int]]
+RGB = Union[Tuple[int, int, int], Tuple[int, int, int, int]]
 Color = Union[str, int, RGB]
