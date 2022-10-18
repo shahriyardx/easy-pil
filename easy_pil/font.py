@@ -42,6 +42,9 @@ class Font:
     def __init__(self, path: str, size: int = 10, **kwargs) -> None:
         self.font = ImageFont.truetype(path, size=size, **kwargs)
 
+    def getsize(self, text: str):
+        return self.font.getsize(text)
+
     @staticmethod
     def poppins(
         variant: Literal["regular", "bold", "italic", "light"] = "regular",
