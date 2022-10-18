@@ -1,9 +1,10 @@
-from typing import Tuple, Union
+from typing import Union
 
 from PIL import ImageFont
 
 from .color import Color
 from .font import Font
+
 
 class Text:
     """Text class
@@ -31,4 +32,6 @@ class Text:
             self.font = font.font
         else:
             self.font = font
-            
+
+    def getsize(self):
+        return self.font.getsize(self.text)
