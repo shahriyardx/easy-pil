@@ -112,7 +112,8 @@ class Editor:
         holder = Image.new("RGBA", size=self.image.size, color=(255, 255, 255, 0))
         mask = Image.new("RGBA", size=self.image.size, color=(255, 255, 255, 0))
         mask_draw = ImageDraw.Draw(mask)
-        mask_draw.ellipse((0, 0) + self.image.size, fill="black")
+        ellipse_size = tuple(i-1 for i in self.image.size)
+        mask_draw.ellipse((0, 0) + ellipse_size, fill="black")
         holder.paste(self.image, (0, 0))
         self.image = Image.composite(holder, background, mask)
 
