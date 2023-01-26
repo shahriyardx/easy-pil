@@ -1,4 +1,4 @@
-Pillow>=8.3.1
-requests>=2.26.0
-typing-extensions>=4.0.1
+Pillow
+requests
+typing-extensions
 aiohttp>=3.6.0; python_version < '3.11'

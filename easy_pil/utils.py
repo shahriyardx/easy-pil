@@ -1,10 +1,13 @@
 import asyncio
 import functools
 from io import BytesIO
+from typing import Union
 
 import aiohttp
 import requests
 from PIL import Image
+
+from .editor import Editor
 
 
 async def run_in_executor(func, **kwargs):
@@ -20,7 +23,7 @@ async def run_in_executor(func, **kwargs):
     return data
 
 
-def load_image(link: str) -> Image.Image:
+def load_image(link: str, as_editor: bool = False) -> Union[Image.Image, Editor]:
     """Load image from link
 
     Parameters
@@ -36,10 +39,13 @@ def load_image(link: str) -> Image.Image:
     _bytes = BytesIO(requests.get(link).content)
     image = Image.open(_bytes).convert("RGBA")
 
+    if as_editor:
+        return Editor(image)
+    
     return image
 
 
-async def load_image_async(link: str) -> Image.Image:
+async def load_image_async(link: str, as_editor: bool = False) -> Union[Image.Image, Editor]:
     """Load image from link (async)
 
     Parameters
@@ -58,4 +64,8 @@ async def load_image_async(link: str) -> Image.Image:
 
     _bytes = BytesIO(data)
     image = Image.open(_bytes).convert("RGBA")
+
+    if as_editor:
+        return Editor(image)
+    
     return image
