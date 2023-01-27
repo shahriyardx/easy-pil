@@ -7,9 +7,9 @@ from PIL import Image, ImageDraw, ImageFilter, ImageFont
 from typing_extensions import Literal
 
 from .canvas import Canvas
+from .color import Color
 from .font import Font
 from .text import Text
-from .color import Color
 
 
 class Editor:
@@ -112,7 +112,7 @@ class Editor:
         holder = Image.new("RGBA", size=self.image.size, color=(255, 255, 255, 0))
         mask = Image.new("RGBA", size=self.image.size, color=(255, 255, 255, 0))
         mask_draw = ImageDraw.Draw(mask)
-        ellipse_size = tuple(i-1 for i in self.image.size)
+        ellipse_size = tuple(i - 1 for i in self.image.size)
         mask_draw.ellipse((0, 0) + ellipse_size, fill="black")
         holder.paste(self.image, (0, 0))
         self.image = Image.composite(holder, background, mask)

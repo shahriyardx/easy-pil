@@ -41,11 +41,13 @@ def load_image(link: str, as_editor: bool = False) -> Union[Image.Image, Editor]
 
     if as_editor:
         return Editor(image)
-    
+
     return image
 
 
-async def load_image_async(link: str, as_editor: bool = False) -> Union[Image.Image, Editor]:
+async def load_image_async(
+    link: str, as_editor: bool = False
+) -> Union[Image.Image, Editor]:
     """Load image from link (async)
 
     Parameters
@@ -67,5 +69,5 @@ async def load_image_async(link: str, as_editor: bool = False) -> Union[Image.Im
 
     if as_editor:
         return Editor(image)
-    
+
     return image

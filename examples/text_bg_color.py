@@ -1,4 +1,4 @@
-from easy_pil import Font, Editor, Canvas
+from easy_pil import Canvas, Editor, Font
 
 bg = Editor(Canvas(width=300, height=200, color="white"))
 font_1 = Font.poppins(variant="regular", size=30)
