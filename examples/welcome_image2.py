@@ -15,8 +15,16 @@ poppins_light = Font.poppins(size=20, variant="light")
 
 background.paste(profile, (325, 90))
 background.ellipse((325, 90), 150, 150, outline="gold", stroke_width=4)
-background.text((400, 260), "WELCOME", color="white", font=poppins, align="center")
-background.text((400, 325), "Shahriyar#9770", color="white", font=poppins_small, align="center")
+background.text(
+    (400, 260), "WELCOME", color="white", font=poppins, align="center"
+)
+background.text(
+    (400, 325),
+    "Shahriyar#9770",
+    color="white",
+    font=poppins_small,
+    align="center",
+)
 background.text(
     (400, 360),
     "You are the 457th Member",

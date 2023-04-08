@@ -46,11 +46,12 @@ isort = "isort --check-only src/ tests/"
 
 [tool.slap.run]
 fmt = "black src/ tests/ && isort src/ tests/"
+test = "python -m unittest discover -v -s tests/"
 
 [tool.isort]
 profile = "black"
-line_length = 120
+line_length = 79
 combine_as_imports = true
 
 [tool.black]
-line-length = 120
+line-length = 79

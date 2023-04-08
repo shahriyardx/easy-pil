@@ -21,7 +21,9 @@ class Editor:
         Image or Canvas to edit.
     """
 
-    def __init__(self, image: Union[Image.Image, str, BytesIO, Editor, Canvas]) -> None:
+    def __init__(
+        self, image: Union[Image.Image, str, BytesIO, Editor, Canvas]
+    ) -> None:
         if isinstance(image, str) or isinstance(image, BytesIO):
             self.image = Image.open(image)
         elif isinstance(image, Canvas) or isinstance(image, Editor):
@@ -75,7 +77,9 @@ class Editor:
                 offset = (height - new_height) / 2
                 resize = (0, offset, width, height - offset)
 
-            self.image = self.image.crop(resize).resize((ideal_width, ideal_height), Image.ANTIALIAS)
+            self.image = self.image.crop(resize).resize(
+                (ideal_width, ideal_height), Image.LANCZOS
+            )
 
         return self
 
@@ -89,12 +93,19 @@ class Editor:
         offset : int, optional
             Offset pixel while making rounded, by default 2
         """
-        background = Image.new("RGBA", size=self.image.size, color=(255, 255, 255, 0))
-        holder = Image.new("RGBA", size=self.image.size, color=(255, 255, 255, 0))
-        mask = Image.new("RGBA", size=self.image.size, color=(255, 255, 255, 0))
+        background = Image.new(
+            "RGBA", size=self.image.size, color=(255, 255, 255, 0)
+        )
+        holder = Image.new(
+            "RGBA", size=self.image.size, color=(255, 255, 255, 0)
+        )
+        mask = Image.new(
+            "RGBA", size=self.image.size, color=(255, 255, 255, 0)
+        )
         mask_draw = ImageDraw.Draw(mask)
         mask_draw.rounded_rectangle(
-            (offset, offset) + (self.image.size[0] - offset, self.image.size[1] - offset),
+            (offset, offset)
+            + (self.image.size[0] - offset, self.image.size[1] - offset),
             radius=radius,
             fill="black",
         )
@@ -105,9 +116,15 @@ class Editor:
 
     def circle_image(self) -> Editor:
         """Make image circle"""
-        background = Image.new("RGBA", size=self.image.size, color=(255, 255, 255, 0))
-        holder = Image.new("RGBA", size=self.image.size, color=(255, 255, 255, 0))
-        mask = Image.new("RGBA", size=self.image.size, color=(255, 255, 255, 0))
+        background = Image.new(
+            "RGBA", size=self.image.size, color=(255, 255, 255, 0)
+        )
+        holder = Image.new(
+            "RGBA", size=self.image.size, color=(255, 255, 255, 0)
+        )
+        mask = Image.new(
+            "RGBA", size=self.image.size, color=(255, 255, 255, 0)
+        )
         mask_draw = ImageDraw.Draw(mask)
         ellipse_size = tuple(i - 1 for i in self.image.size)
         mask_draw.ellipse((0, 0) + ellipse_size, fill="black")
@@ -129,7 +146,9 @@ class Editor:
         self.image = self.image.rotate(angle=deg, expand=expand)
         return self
 
-    def blur(self, mode: Literal["box", "gussian"] = "gussian", amount: float = 1) -> Editor:
+    def blur(
+        self, mode: Literal["box", "gussian"] = "gussian", amount: float = 1
+    ) -> Editor:
         """Blur image
 
         Parameters
@@ -142,7 +161,9 @@ class Editor:
         if mode == "box":
             self.image = self.image.filter(ImageFilter.BoxBlur(radius=amount))
         if mode == "gussian":
-            self.image = self.image.filter(ImageFilter.GaussianBlur(radius=amount))
+            self.image = self.image.filter(
+                ImageFilter.GaussianBlur(radius=amount)
+            )
 
         return self
 
@@ -176,7 +197,11 @@ class Editor:
 
         return self
 
-    def paste(self, image: Union[Image.Image, Editor, Canvas], position: Tuple[float, float]) -> Editor:
+    def paste(
+        self,
+        image: Union[Image.Image, Editor, Canvas],
+        position: Tuple[float, float],
+    ) -> Editor:
         """Paste image into editor
 
         Parameters
@@ -186,7 +211,9 @@ class Editor:
         position : Tuple[float, float]
             Position to paste
         """
-        blank = Image.new("RGBA", size=self.image.size, color=(255, 255, 255, 0))
+        blank = Image.new(
+            "RGBA", size=self.image.size, color=(255, 255, 255, 0)
+        )
 
         if isinstance(image, Editor) or isinstance(image, Canvas):
             image = image.image
@@ -258,7 +285,7 @@ class Editor:
             total_width = 0
 
             for text in texts:
-                total_width += text.font.getsize(text.text)[0]
+                total_width += text.font.getlength(text.text)
 
             position = (position[0] - total_width, position[1])
 
@@ -266,7 +293,7 @@ class Editor:
             total_width = 0
 
             for text in texts:
-                total_width += text.font.getsize(text.text)[0]
+                total_width += text.font.getlength(text.text)
 
             position = (position[0] - (total_width / 2), position[1])
 
@@ -276,12 +303,9 @@ class Editor:
             color = text.color
 
             if space_separated:
-                width, _ = (
-                    font.getsize(sentence)[0] + font.getsize(" ")[0],
-                    font.getsize(sentence)[1],
-                )
+                width = font.getlength(sentence + " ")
             else:
-                width, _ = font.getsize(sentence)
+                width = font.getlength(sentence)
 
             draw.text(position, sentence, color, font=font, anchor="lm")
             position = (position[0] + width, position[1])
