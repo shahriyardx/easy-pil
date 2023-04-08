@@ -39,9 +39,7 @@ background.bar(
 )
 
 background.text((390, 135), "Rank : 45", font=font_25, color="white")
-background.text(
-    (750, 135), f"XP : {user_data['xp']}", font=font_25, color="white", align="right"
-)
+background.text((750, 135), f"XP : {user_data['xp']}", font=font_25, color="white", align="right")
 
 
 background.show()

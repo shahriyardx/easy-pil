@@ -1,0 +1,8 @@
+[flake8]
+max-line-length = 120
+# Black can yield formatted code that triggers these Flake8 warnings.
+ignore=
+    # line break before binary operator
+    W503,
+    # line break after binary operator
+    W504,

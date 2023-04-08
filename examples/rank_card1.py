@@ -37,8 +37,7 @@ background.text((200, 40), user_data["name"], font=poppins, color="white")
 background.rectangle((200, 100), width=350, height=2, fill="#17F3F6")
 background.text(
     (200, 130),
-    f"Level : {user_data['level']} "
-    + f" XP : {user_data['xp']} / {user_data['next_level_xp']}",
+    f"Level : {user_data['level']} " + f" XP : {user_data['xp']} / {user_data['next_level_xp']}",
     font=poppins_small,
     color="white",
 )

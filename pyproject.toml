@@ -1,0 +1,56 @@
+[build-system]
+requires = ["poetry-core", "Pillow", "requests", "typing-extensions", "aiohttp"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+name = "easy-pil"
+version = "0.1.9"
+description = ""
+authors = ["Md Shahriyar Alam <mdshahriyaralam552@gmail.com>"]
+license = "MIT"
+readme = "readme.md"
+packages = [{ include = "easy_pil", from = "src" }]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Topic :: Software Development :: Build Tools",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+]
+keywords = []
+
+[tool.poetry.urls]
+"Bug Tracker" = "https://github.com/shahriyardx/easy-pil/issues"
+Documentation = "https://easy-pil.readthedocs.io"
+Homepage = "https://github.com/shahriyardx/easy-pil"
+Repository = "https://github.com/shahriyardx/easy-pil"
+
+[tool.poetry.dependencies]
+python = ">=3.6.2,<4.0"
+
+[tool.poetry.dev-dependencies]
+black = "*"
+isort = "*"
+
+[tool.slap]
+typed = true
+
+[tool.slap.test]
+check = "slap check"
+unittest = "python -m unittest discover -v -s tests/"
+black = "black --check src/ tests/"
+isort = "isort --check-only src/ tests/"
+
+[tool.slap.run]
+fmt = "black src/ tests/ && isort src/ tests/"
+
+[tool.isort]
+profile = "black"
+line_length = 120
+combine_as_imports = true
+
+[tool.black]
+line-length = 120

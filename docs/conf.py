@@ -19,11 +19,11 @@ sys.path.insert(0, os.path.abspath(".."))
 # -- Project information -----------------------------------------------------
 
 project = "Easy PIL"
-copyright = "2021, Md Shahriyar Alam"
+copyright = "2023, Md Shahriyar Alam"
 author = "Md Shahriyar Alam"
 
 # The full version, including alpha/beta/rc tags
-release = "0.1.5"
+release = "0.1.9"
 
 
 # -- General configuration ---------------------------------------------------

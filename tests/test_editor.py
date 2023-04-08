@@ -35,9 +35,7 @@ class TestEditor(unittest.TestCase):
     def test_text(self):
         """Tests editor text"""
         canvas = Canvas((100, 100), color="black")
-        editor = Editor(canvas).text(
-            (50, 50), "Hello World", color="white", font=Font.poppins(size=20)
-        )
+        editor = Editor(canvas).text((50, 50), "Hello World", color="white", font=Font.poppins(size=20))
         self.assertIsInstance(editor, Editor)
 
     def test_circle(self):
@@ -89,9 +87,7 @@ class TestEditor(unittest.TestCase):
         canvas = Canvas((200, 100), color="black")
         hello = Text("Hello ", color="white", font=Font.poppins(size=20))
         world = Text("World", color="white", font=Font.poppins(size=20))
-        editor = Editor(canvas).multi_text(
-            (0, 0), [hello, world], space_separated=False, align="left"
-        )
+        editor = Editor(canvas).multi_text((0, 0), [hello, world], space_separated=False, align="left")
         self.assertIsInstance(editor, Editor)
 
     def test_rectangle(self):
@@ -118,17 +114,13 @@ class TestEditor(unittest.TestCase):
     def test_rounded_bar(self):
         """Tests editor rounded bar"""
         canvas = Canvas((100, 100), color="black")
-        editor = Editor(canvas).rounded_bar(
-            (10, 10), 80, 80, 50, color="white", stroke_width=2
-        )
+        editor = Editor(canvas).rounded_bar((10, 10), 80, 80, 50, color="white", stroke_width=2)
         self.assertIsInstance(editor, Editor)
 
     def test_arc(self):
         """Tests editor arc"""
         canvas = Canvas((100, 100), color="black")
-        editor = Editor(canvas).arc(
-            (10, 10), 80, 80, 0, 90, color="white", stroke_width=2
-        )
+        editor = Editor(canvas).arc((10, 10), 80, 80, 0, 90, color="white", stroke_width=2)
         self.assertIsInstance(editor, Editor)
 
     def test_polygon(self):
