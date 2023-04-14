@@ -2,7 +2,7 @@ import random
 import string
 from typing import Any, Callable, Dict, Tuple, Union
 
-from .color import Color
+from .types import Color, ComponentKwargs
 from .editor import Canvas, Editor
 
 
@@ -74,7 +74,7 @@ class Workspace:
         layer_name: str = None,
         identifier: str = None,
         func: Union[Callable, str],
-        **kwargs
+        **kwargs: ComponentKwargs
     ):
         """Add component to a layer
 
@@ -143,7 +143,7 @@ class Workspace:
             raise ValueError("Invalid layer name or identifier")
 
     def update_component(
-        self, *, layer_name: str = None, identifier: str, **kwargs
+        self, *, layer_name: str = None, identifier: str, **kwargs: ComponentKwargs
     ):
         """Update component of a layer
 

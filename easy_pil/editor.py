@@ -7,9 +7,9 @@ from PIL import Image, ImageDraw, ImageFilter, ImageFont
 from typing_extensions import Literal
 
 from .canvas import Canvas
-from .color import Color
 from .font import Font
 from .text import Text
+from .types import Color
 
 
 class Editor:
