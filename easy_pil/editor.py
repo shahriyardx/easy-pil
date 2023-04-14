@@ -7,9 +7,9 @@ from PIL import Image, ImageDraw, ImageFilter, ImageFont
 from typing_extensions import Literal
 
 from .canvas import Canvas
+from .color import Color
 from .font import Font
 from .text import Text
-from .color import Color
 
 
 class Editor:
@@ -21,7 +21,9 @@ class Editor:
         Image or Canvas to edit.
     """
 
-    def __init__(self, image: Union[Image.Image, str, BytesIO, Editor, Canvas]) -> None:
+    def __init__(
+        self, image: Union[Image.Image, str, BytesIO, Editor, Canvas]
+    ) -> None:
         if isinstance(image, str) or isinstance(image, BytesIO):
             self.image = Image.open(image)
         elif isinstance(image, Canvas) or isinstance(image, Editor):
@@ -91,9 +93,15 @@ class Editor:
         offset : int, optional
             Offset pixel while making rounded, by default 2
         """
-        background = Image.new("RGBA", size=self.image.size, color=(255, 255, 255, 0))
-        holder = Image.new("RGBA", size=self.image.size, color=(255, 255, 255, 0))
-        mask = Image.new("RGBA", size=self.image.size, color=(255, 255, 255, 0))
+        background = Image.new(
+            "RGBA", size=self.image.size, color=(255, 255, 255, 0)
+        )
+        holder = Image.new(
+            "RGBA", size=self.image.size, color=(255, 255, 255, 0)
+        )
+        mask = Image.new(
+            "RGBA", size=self.image.size, color=(255, 255, 255, 0)
+        )
         mask_draw = ImageDraw.Draw(mask)
         mask_draw.rounded_rectangle(
             (offset, offset)
@@ -108,11 +116,17 @@ class Editor:
 
     def circle_image(self) -> Editor:
         """Make image circle"""
-        background = Image.new("RGBA", size=self.image.size, color=(255, 255, 255, 0))
-        holder = Image.new("RGBA", size=self.image.size, color=(255, 255, 255, 0))
-        mask = Image.new("RGBA", size=self.image.size, color=(255, 255, 255, 0))
+        background = Image.new(
+            "RGBA", size=self.image.size, color=(255, 255, 255, 0)
+        )
+        holder = Image.new(
+            "RGBA", size=self.image.size, color=(255, 255, 255, 0)
+        )
+        mask = Image.new(
+            "RGBA", size=self.image.size, color=(255, 255, 255, 0)
+        )
         mask_draw = ImageDraw.Draw(mask)
-        ellipse_size = tuple(i-1 for i in self.image.size)
+        ellipse_size = tuple(i - 1 for i in self.image.size)
         mask_draw.ellipse((0, 0) + ellipse_size, fill="black")
         holder.paste(self.image, (0, 0))
         self.image = Image.composite(holder, background, mask)
@@ -147,7 +161,9 @@ class Editor:
         if mode == "box":
             self.image = self.image.filter(ImageFilter.BoxBlur(radius=amount))
         if mode == "gussian":
-            self.image = self.image.filter(ImageFilter.GaussianBlur(radius=amount))
+            self.image = self.image.filter(
+                ImageFilter.GaussianBlur(radius=amount)
+            )
 
         return self
 
@@ -182,7 +198,9 @@ class Editor:
         return self
 
     def paste(
-        self, image: Union[Image.Image, Editor, Canvas], position: Tuple[float, float]
+        self,
+        image: Union[Image.Image, Editor, Canvas],
+        position: Tuple[float, float],
     ) -> Editor:
         """Paste image into editor
 
@@ -193,7 +211,9 @@ class Editor:
         position : Tuple[float, float]
             Position to paste
         """
-        blank = Image.new("RGBA", size=self.image.size, color=(255, 255, 255, 0))
+        blank = Image.new(
+            "RGBA", size=self.image.size, color=(255, 255, 255, 0)
+        )
 
         if isinstance(image, Editor) or isinstance(image, Canvas):
             image = image.image

@@ -3,23 +3,32 @@ from pathlib import Path
 
 from setuptools import find_packages, setup
 
-with open("requirements.txt") as f:
-    requirements = f.read().splitlines()
-
 current_directory = Path(__file__).parent.resolve()
 
-long_description = (current_directory / "README.md").read_text(encoding="utf-8")
 
-vpath = current_directory / "easy_pil" / "_version.py"
-spec = spec_from_file_location(vpath.name[:-3], vpath)
-mod = module_from_spec(spec)
-spec.loader.exec_module(mod)
+def _get_requirements() -> list:
+    with open("requirements.txt") as f:
+        return f.read().splitlines()
+
+
+def _get_long_desc() -> str:
+    return (current_directory / "README.md").read_text(encoding="utf-8")
+
+
+def _get_version() -> str:
+    vpath = current_directory / "easy_pil" / "_version.py"
+    spec = spec_from_file_location(vpath.name[:-3], vpath)
+    mod = module_from_spec(spec)
+    spec.loader.exec_module(mod)
+
+    return mod.__version__
+
 
 setup(
     name="easy-pil",
-    version=mod.__version__,
+    version=_get_version(),
     description="A library to make common tasks of Pillow easy.",  # Optional
-    long_description=long_description,
+    long_description=_get_long_desc(),
     long_description_content_type="text/markdown",
     url="https://github.com/shahriyardx/easy-pil",
     author="Md Shahriyar Alam",
@@ -40,7 +49,10 @@ setup(
         "easy_pil": ["fonts/*/*.ttf"],
     },
     python_requires=">=3.7, <4",
-    install_requires=requirements,
+    install_requires=_get_requirements(),
+    extras_require={
+        "dev": ["black", "isort", "click", "twine"],
+    },
     project_urls={
         "Documentation": "https://easy-pil.readthedocs.io/en/latest/",
         "Bug Reports": "https://github.com/shahriyardx/easy-pil/issues",

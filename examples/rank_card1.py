@@ -23,7 +23,9 @@ card_right_shape = [(600, 0), (750, 300), (900, 300), (900, 0)]
 background.polygon(card_right_shape, "#2C2F33")
 background.paste(profile, (30, 30))
 
-background.rectangle((30, 220), width=650, height=40, fill="#494b4f", radius=20)
+background.rectangle(
+    (30, 220), width=650, height=40, fill="#494b4f", radius=20
+)
 background.bar(
     (30, 220),
     max_width=650,

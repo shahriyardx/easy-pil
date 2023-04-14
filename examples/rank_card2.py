@@ -21,8 +21,12 @@ poppins = Font.poppins(size=30)
 
 background.rectangle((20, 20), 894, 242, "#2a2e35")
 background.paste(profile, (50, 50))
-background.ellipse((42, 42), width=206, height=206, outline="#43b581", stroke_width=10)
-background.rectangle((260, 180), width=630, height=40, fill="#484b4e", radius=20)
+background.ellipse(
+    (42, 42), width=206, height=206, outline="#43b581", stroke_width=10
+)
+background.rectangle(
+    (260, 180), width=630, height=40, fill="#484b4e", radius=20
+)
 background.bar(
     (260, 180),
     max_width=630,
