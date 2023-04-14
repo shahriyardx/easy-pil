@@ -1,8 +1,8 @@
 import os
 
+from memoization import cached
 from PIL import ImageFont
 from typing_extensions import Literal
-from memoization import cached
 
 fonts_directory = os.path.join(os.path.dirname(__file__), "fonts")
 fonts_path = {

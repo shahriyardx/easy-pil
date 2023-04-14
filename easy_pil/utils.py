@@ -4,8 +4,8 @@ from io import BytesIO
 
 import aiohttp
 import requests
-from PIL import Image
 from memoization import cached
+from PIL import Image
 
 
 async def run_in_executor(func, **kwargs):
