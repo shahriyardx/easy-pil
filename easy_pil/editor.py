@@ -59,7 +59,7 @@ class Editor:
             Crop the image to bypass distortion, by default False
         """
         if not crop:
-            self.image = self.image.resize(size, Image.ANTIALIAS)
+            self.image = self.image.resize(size, Image.LANCZOS)
 
         else:
             width, height = self.image.size
@@ -78,7 +78,7 @@ class Editor:
                 resize = (0, offset, width, height - offset)
 
             self.image = self.image.crop(resize).resize(
-                (ideal_width, ideal_height), Image.ANTIALIAS
+                (ideal_width, ideal_height), Image.LANCZOS
             )
 
         return self
