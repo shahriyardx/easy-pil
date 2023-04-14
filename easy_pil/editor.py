@@ -285,7 +285,7 @@ class Editor:
             total_width = 0
 
             for text in texts:
-                total_width += text.font.getsize(text.text)[0]
+                total_width += text.font.getlength(text.text)
 
             position = (position[0] - total_width, position[1])
 
@@ -293,7 +293,7 @@ class Editor:
             total_width = 0
 
             for text in texts:
-                total_width += text.font.getsize(text.text)[0]
+                total_width += text.font.getlength(text.text)
 
             position = (position[0] - (total_width / 2), position[1])
 
@@ -303,12 +303,9 @@ class Editor:
             color = text.color
 
             if space_separated:
-                width, _ = (
-                    font.getsize(sentence)[0] + font.getsize(" ")[0],
-                    font.getsize(sentence)[1],
-                )
+                width = font.getlength(sentence + " ")
             else:
-                width, _ = font.getsize(sentence)
+                width = font.getlength(sentence)
 
             draw.text(position, sentence, color, font=font, anchor="lm")
             position = (position[0] + width, position[1])
