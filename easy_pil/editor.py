@@ -24,14 +24,14 @@ class Editor:
     def __init__(
         self, image: Union[Image.Image, str, BytesIO, Editor, Canvas]
     ) -> None:
-        if isinstance(image, str) or isinstance(image, BytesIO):
-            self.image = Image.open(image)
-        elif isinstance(image, Canvas) or isinstance(image, Editor):
-            self.image = image.image
-        else:
-            self.image = image
+        self.image = None
 
-        self.image = self.image.convert("RGBA")
+        if isinstance(image, str) or isinstance(image, BytesIO):
+            self.image = Image.open(image).convert("RGBA")
+        elif isinstance(image, Canvas) or isinstance(image, Editor):
+            self.image = image.image.convert("RGBA")
+        else:
+            self.image = image.convert("RGBA")
 
     @property
     def image_bytes(self) -> BytesIO:
@@ -44,8 +44,8 @@ class Editor:
         """
         _bytes = BytesIO()
         self.image.save(_bytes, "png")
-        _bytes.seek(0)
 
+        _bytes.seek(0)
         return _bytes
 
     def resize(self, size: Tuple[float, float], crop=False) -> Editor:
