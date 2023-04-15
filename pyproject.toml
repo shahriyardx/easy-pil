@@ -13,4 +13,6 @@ combine_star = true
 line_length = 79
 
 [tool.commands]
-fmt = "black .;isort ."
+fmt = "python3 -m black . ;python3 -m isort ."
+build = "python3 -m setup.py sdist bdist_wheel"
+publish = "twine upload dist/* --skip-existing"
