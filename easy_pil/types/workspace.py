@@ -1,4 +1,9 @@
-from typing import List, Tuple, TypedDict, Union
+from typing import List, Tuple, Union
+
+try:
+    from typing import TypedDict
+except ImportError:
+    from typing_extensions import TypedDict
 
 from PIL.Image import Image
 from PIL.ImageFont import FreeTypeFont
