@@ -1,4 +1,4 @@
-Canvas
+Workspace
 =======================
 
 .. autoclass:: easy_pil.workspace.Workspace
