@@ -23,7 +23,7 @@ copyright = "2021, Md Shahriyar Alam"
 author = "Md Shahriyar Alam"
 
 # The full version, including alpha/beta/rc tags
-release = "0.1.5"
+release = "0.2.0"
 
 
 # -- General configuration ---------------------------------------------------
