@@ -4,13 +4,10 @@ from PIL.Image import Image
 from PIL.ImageFont import FreeTypeFont
 from typing_extensions import Literal
 
-from .canvas import Canvas
-from .editor import Editor
-from .font import Font
-from .text import Text
-
-RGB = Union[Tuple[int, int, int], Tuple[int, int, int, int]]
-Color = Union[str, int, RGB]
+from ..canvas import Canvas
+from ..editor import Editor
+from ..font import Font
+from ..text import Text
 
 
 class ComponentKwargs(TypedDict):
@@ -29,8 +26,8 @@ class ComponentKwargs(TypedDict):
     text: str
     font: Union[FreeTypeFont, Font]
     align: Literal["left", "center", "right"]
-    color: str
-    fill: str
+    color: Union[int, str, Tuple[int, int, int], Tuple[int, int, int, int]]
+    fill: Union[int, str, Tuple[int, int, int], Tuple[int, int, int, int]]
     space_separated: bool
     texts: List[Text]
     width: float

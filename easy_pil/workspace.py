@@ -2,8 +2,9 @@ import random
 import string
 from typing import Any, Callable, Dict, Tuple, Union
 
-from .types import Color, ComponentKwargs
 from .editor import Canvas, Editor
+from .types.common import Color
+from .types.workspace import ComponentKwargs
 
 
 class Workspace:
@@ -21,6 +22,8 @@ class Workspace:
         ----------
         name : str
             name of the layer
+        background: Color
+            background color of the layer
         """
         self.layers[name] = {
             "metadata": {
@@ -46,6 +49,35 @@ class Workspace:
             self.layers.pop(name)
         except KeyError:
             raise ValueError("Invalid layer name")
+
+    def update_layer(
+        self,
+        layer_name: str,
+        new_layer_name: str = None,
+        background: Color = None,
+    ):
+        """Creates a layer
+
+        Parameters
+        ----------
+        name : str
+            name of the layer
+        background: Color
+            background color of the layer
+
+        Raises
+        ------
+        ValueError
+            if the layer is not available in the workspace
+        """
+        if not layer_name in self.layers:
+            raise ValueError("Invalid layer name")
+
+        if background:
+            self.layers[layer_name]["metadata"]["background"] = background
+
+        if new_layer_name:
+            self.layers[new_layer_name] = self.layers.pop(layer_name)
 
     def set_working_layer(self, name: str):
         """Sets a layer as working layer
@@ -74,7 +106,7 @@ class Workspace:
         layer_name: str = None,
         identifier: str = None,
         func: Union[Callable, str],
-        **kwargs: ComponentKwargs
+        options: ComponentKwargs
     ):
         """Add component to a layer
 
@@ -86,7 +118,7 @@ class Workspace:
             unique name for a component
         func : Union[Callable, str]
             the function or function name from editor class
-        kwargs : dict
+        options : ComponentKwargs
             keyword arguments for the func
 
         Raises
@@ -111,7 +143,7 @@ class Workspace:
 
         self.layers[layer_name]["components"][identifier_name] = {
             "func_name": func_name,
-            **kwargs,
+            "options": options,
         }
 
     def remove_component(self, *, layer_name: str = None, identifier: str):
@@ -143,7 +175,11 @@ class Workspace:
             raise ValueError("Invalid layer name or identifier")
 
     def update_component(
-        self, *, layer_name: str = None, identifier: str, **kwargs: ComponentKwargs
+        self,
+        *,
+        layer_name: str = None,
+        identifier: str,
+        options: ComponentKwargs
     ):
         """Update component of a layer
 
@@ -153,8 +189,8 @@ class Workspace:
             name of the layer
         identifier : str
             unique name for a component
-        kwargs : dict
-            modified kwargs
+        options : ComponentKwargs
+            modified options
 
         Raises
         ------
@@ -171,7 +207,9 @@ class Workspace:
         if layer_name not in self.layers:
             raise ValueError("Invalid layer name")
 
-        self.layers[layer_name]["components"][identifier].update(kwargs)
+        self.layers[layer_name]["components"][identifier]["options"].update(
+            options
+        )
 
     def __create_editor_layer(
         self, size: Tuple[float, float], metadata: Dict[str, Any]
@@ -191,13 +229,14 @@ class Workspace:
         for layer in self.layers.values():
             _layer = self.__create_editor_layer(self.size, layer["metadata"])
 
-            for _, kwargs in layer["components"].items():
-                _kwargs = {**kwargs}
+            for config in layer["components"].values():
+                func_name = config["func_name"]
+                options = config["options"]
 
-                _func = getattr(_layer, _kwargs.pop("func_name"))
+                _func = getattr(_layer, func_name)
 
                 if _func:
-                    _func(**_kwargs)
+                    _func(**options)
 
             editor.paste(_layer, position=(0, 0))
 

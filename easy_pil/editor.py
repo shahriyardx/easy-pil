@@ -9,7 +9,7 @@ from typing_extensions import Literal
 from .canvas import Canvas
 from .font import Font
 from .text import Text
-from .types import Color
+from .types.common import Color
 
 
 class Editor:

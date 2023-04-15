@@ -1,8 +1,7 @@
-from typing import Union
+from typing import Tuple, Union
 
 from PIL import ImageFont
 
-from .color import Color
 from .font import Font
 
 
@@ -23,7 +22,9 @@ class Text:
         self,
         text: str,
         font: Union[ImageFont.FreeTypeFont, Font],
-        color: Color = "black",
+        color: Union[
+            int, str, Tuple[int, int, int], Tuple[int, int, int, int]
+        ] = "black",
     ) -> None:
         self.text = text
         self.color = color

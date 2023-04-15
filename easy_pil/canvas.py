@@ -1,8 +1,8 @@
-from typing import Tuple
+from typing import Tuple, Union
 
 from PIL import Image
 
-from .color import Color
+from .types.common import Color
 
 
 class Canvas:
