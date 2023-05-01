@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from io import BytesIO
-from typing import List, Tuple, Union
+from typing import List, Optional, Tuple, Union
 
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 from typing_extensions import Literal
@@ -230,6 +230,7 @@ class Editor:
         font: Union[ImageFont.FreeTypeFont, Font] = None,
         color: Color = "black",
         align: Literal["left", "center", "right"] = "left",
+        stroke: Optional[Union[int, Tuple[int], Tuple[int, str]]] = None,
     ) -> Editor:
         """Draw text into image
 
@@ -245,6 +246,10 @@ class Editor:
             Color of the font, by default "black"
         align : Literal["left", "center", "right"], optional
             Align text, by default "left"
+        stroke : Union[int, Tuple[int], Tuple[int, str]], optional
+            Whether there should be any stroke. Defaults to
+            None. If only one parameter is passed, the
+            default color is black.
         """
         if isinstance(font, Font):
             font = font.font
@@ -252,7 +257,19 @@ class Editor:
         anchors = {"left": "lt", "center": "mt", "right": "rt"}
 
         draw = ImageDraw.Draw(self.image)
-        draw.text(position, text, color, font=font, anchor=anchors[align])
+
+        if stroke:
+            if isinstance(stroke, int):
+                draw.text(position, text, color, font=font, anchor=anchors[align],
+                          stroke_width=stroke, stroke_fill="black")
+            elif len(stroke) > 1:
+                draw.text(position, text, color, font=font, anchor=anchors[align],
+                          stroke_width=stroke[0], stroke_fill=stroke[1])
+            else:
+                draw.text(position, text, color, font=font, anchor=anchors[align],
+                          stroke_width=stroke[0], stroke_fill="black")
+        else:
+            draw.text(position, text, color, font=font, anchor=anchors[align])
 
         return self
 
