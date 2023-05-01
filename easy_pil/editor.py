@@ -230,7 +230,7 @@ class Editor:
         font: Union[ImageFont.FreeTypeFont, Font] = None,
         color: Color = "black",
         align: Literal["left", "center", "right"] = "left",
-        stroke_width: Optional[int] = None,
+        stroke_width: int = None,
         stroke_fill: Color = "black"
     ) -> Editor:
         """Draw text into image
