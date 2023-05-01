@@ -230,7 +230,8 @@ class Editor:
         font: Union[ImageFont.FreeTypeFont, Font] = None,
         color: Color = "black",
         align: Literal["left", "center", "right"] = "left",
-        stroke: Optional[Union[int, Tuple[int], Tuple[int, str]]] = None,
+        stroke_width: Optional[int] = None,
+        stroke_fill: Color = "black"
     ) -> Editor:
         """Draw text into image
 
@@ -246,10 +247,12 @@ class Editor:
             Color of the font, by default "black"
         align : Literal["left", "center", "right"], optional
             Align text, by default "left"
-        stroke : Union[int, Tuple[int], Tuple[int, str]], optional
+        stroke_width : int, optional
             Whether there should be any stroke. Defaults to
-            None. If only one parameter is passed, the
-            default color is black.
+            None. It represents the width of the said stroke.
+        stroke_fill : Color, optional
+            Color of the stroke, if any stroke is applied to the
+            text. Defaults to "black"
         """
         if isinstance(font, Font):
             font = font.font
@@ -258,16 +261,9 @@ class Editor:
 
         draw = ImageDraw.Draw(self.image)
 
-        if stroke:
-            if isinstance(stroke, int):
-                draw.text(position, text, color, font=font, anchor=anchors[align],
-                          stroke_width=stroke, stroke_fill="black")
-            elif len(stroke) > 1:
-                draw.text(position, text, color, font=font, anchor=anchors[align],
-                          stroke_width=stroke[0], stroke_fill=stroke[1])
-            else:
-                draw.text(position, text, color, font=font, anchor=anchors[align],
-                          stroke_width=stroke[0], stroke_fill="black")
+        if stroke_width:
+            draw.text(position, text, color, font=font, anchor=anchors[align],
+                      stroke_width=stroke_width, stroke_fill=stroke_fill)
         else:
             draw.text(position, text, color, font=font, anchor=anchors[align])
 
