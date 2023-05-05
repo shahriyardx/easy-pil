@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from io import BytesIO
-from typing import List, Tuple, Union
+from typing import List, Optional, Tuple, Union
 
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 from typing_extensions import Literal
@@ -230,6 +230,8 @@ class Editor:
         font: Union[ImageFont.FreeTypeFont, Font] = None,
         color: Color = "black",
         align: Literal["left", "center", "right"] = "left",
+        stroke_width: int = None,
+        stroke_fill: Color = "black"
     ) -> Editor:
         """Draw text into image
 
@@ -245,6 +247,12 @@ class Editor:
             Color of the font, by default "black"
         align : Literal["left", "center", "right"], optional
             Align text, by default "left"
+        stroke_width : int, optional
+            Whether there should be any stroke. Defaults to
+            None. It represents the width of the said stroke.
+        stroke_fill : Color, optional
+            Color of the stroke, if any stroke is applied to the
+            text. Defaults to "black"
         """
         if isinstance(font, Font):
             font = font.font
@@ -252,7 +260,12 @@ class Editor:
         anchors = {"left": "lt", "center": "mt", "right": "rt"}
 
         draw = ImageDraw.Draw(self.image)
-        draw.text(position, text, color, font=font, anchor=anchors[align])
+
+        if stroke_width:
+            draw.text(position, text, color, font=font, anchor=anchors[align],
+                      stroke_width=stroke_width, stroke_fill=stroke_fill)
+        else:
+            draw.text(position, text, color, font=font, anchor=anchors[align])
 
         return self
 
