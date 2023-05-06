@@ -1,9 +1,11 @@
 import asyncio
 import functools
+from functools import lru_cache
 from io import BytesIO
 
 import aiohttp
 import requests
+from async_lru import alru_cache
 from PIL import Image
 
 
@@ -20,6 +22,7 @@ async def run_in_executor(func, **kwargs):
     return data
 
 
+@lru_cache()
 def load_image(link: str) -> Image.Image:
     """Load image from link
 
@@ -39,6 +42,7 @@ def load_image(link: str) -> Image.Image:
     return image
 
 
+@alru_cache()
 async def load_image_async(link: str) -> Image.Image:
     """Load image from link (async)
 
