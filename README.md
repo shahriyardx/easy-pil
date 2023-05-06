@@ -11,5 +11,5 @@ Using this for the first time? Here are some links to help you get started.
 - [Report bugs](https://github.com/shahriyardx/easy-pil/issues/)
 
 ## Get help
-- Ask us in our [Discord server](https://discord.gg/4rd4JQWmsY)
+- Ask us in our [Discord server](https://discord.gg/fVzt5THTNb)
 - Watch [Youtube Tutorials](https://www.youtube.com/playlist?list=PLb_oBhGqAlbT4yVqV0TSXggA8b0lZhGhn)
