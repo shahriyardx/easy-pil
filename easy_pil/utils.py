@@ -1,5 +1,6 @@
 import asyncio
 import functools
+from functools import lru_cache
 from io import BytesIO
 
 import aiohttp
@@ -21,7 +22,7 @@ async def run_in_executor(func, **kwargs):
     return data
 
 
-@cached(ttl=60 * 60 * 24)
+@lru_cache(maxsize=32)
 def load_image(link: str) -> Image.Image:
     """Load image from link
 
@@ -42,7 +43,7 @@ def load_image(link: str) -> Image.Image:
 
 
 @cached(ttl=60 * 60 * 24)
-async def load_image_async(link: str) -> Image.Image:
+async def load_image_async(link: str, session=None) -> Image.Image:
     """Load image from link (async)
 
     Parameters
@@ -55,9 +56,13 @@ async def load_image_async(link: str) -> Image.Image:
     PIL.Image.Image
         Image link
     """
-    async with aiohttp.ClientSession() as session:
-        async with session.get(link) as response:
+    if isinstance(session, aiohttp.ClientSession):
+        async with session.get(link) as response:  # type: ignore
             data = await response.read()
+    else:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(link) as response:
+                data = await response.read()
 
     _bytes = BytesIO(data)
     image = Image.open(_bytes).convert("RGBA")
