@@ -231,7 +231,7 @@ class Editor:
         color: Color = "black",
         align: Literal["left", "center", "right"] = "left",
         stroke_width: int = None,
-        stroke_fill: Color = "black"
+        stroke_fill: Color = "black",
     ) -> Editor:
         """Draw text into image
 
@@ -262,8 +262,15 @@ class Editor:
         draw = ImageDraw.Draw(self.image)
 
         if stroke_width:
-            draw.text(position, text, color, font=font, anchor=anchors[align],
-                      stroke_width=stroke_width, stroke_fill=stroke_fill)
+            draw.text(
+                position,
+                text,
+                color,
+                font=font,
+                anchor=anchors[align],
+                stroke_width=stroke_width,
+                stroke_fill=stroke_fill,
+            )
         else:
             draw.text(position, text, color, font=font, anchor=anchors[align])
 
