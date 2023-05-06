@@ -7,7 +7,7 @@ current_directory = Path(__file__).parent.resolve()
 
 
 def _get_requirements() -> list:
-    with open("requirements.txt") as f:
+    with open(current_directory / "requirements.txt") as f:
         return f.read().splitlines()
 
 
