@@ -4,7 +4,6 @@ from io import BytesIO
 
 import aiohttp
 import requests
-from memoization import cached
 from PIL import Image
 
 
@@ -21,7 +20,6 @@ async def run_in_executor(func, **kwargs):
     return data
 
 
-@cached(max_size=50)
 def load_image(link: str) -> Image.Image:
     """Load image from link
 
@@ -41,7 +39,6 @@ def load_image(link: str) -> Image.Image:
     return image
 
 
-@cached(max_size=50)
 async def load_image_async(link: str) -> Image.Image:
     """Load image from link (async)
 

@@ -1,6 +1,6 @@
 from collections import namedtuple
 
-__version__ = "0.2.0"
+__version__ = "0.2.1"
 
 VersionInfo = namedtuple("VersionInfo", "major minor macro release")
 
