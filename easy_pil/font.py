@@ -1,10 +1,12 @@
 import os
+from functools import lru_cache
 
-from memoization import cached
 from PIL import ImageFont
 from typing_extensions import Literal
 
 fonts_directory = os.path.join(os.path.dirname(__file__), "fonts")
+
+
 fonts_path = {
     "caveat": {
         "regular": os.path.join(fonts_directory, "caveat", "caveat.ttf"),
@@ -57,7 +59,7 @@ class Font:
         return self.font.getsize(text)
 
     @staticmethod
-    @cached()
+    @lru_cache()
     def poppins(
         variant: Literal["regular", "bold", "italic", "light"] = "regular",
         size: int = 10,
@@ -74,7 +76,7 @@ class Font:
         return ImageFont.truetype(fonts_path["poppins"][variant], size=size)
 
     @staticmethod
-    @cached()
+    @lru_cache()
     def caveat(
         variant: Literal["regular", "bold", "italic", "light"] = "regular",
         size: int = 10,
@@ -91,7 +93,7 @@ class Font:
         return ImageFont.truetype(fonts_path["caveat"][variant], size=size)
 
     @staticmethod
-    @cached()
+    @lru_cache()
     def montserrat(
         variant: Literal["regular", "bold", "italic", "light"] = "regular",
         size: int = 10,
