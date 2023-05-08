@@ -1,6 +1,6 @@
 import random
 import string
-from typing import Any, Callable, Dict, Tuple, Union
+from typing import Any, Callable, Dict, Optional, Tuple, Union
 
 from .editor import Canvas, Editor
 from .types.common import Color
@@ -12,7 +12,7 @@ class Workspace:
 
     def __init__(self, size: Tuple[float, float]) -> None:
         self.size = size
-        self.layers: Dict[str, Dict[str, Dict[str, dict]]] = dict()
+        self.layers: dict = dict()
         self.working_layer = None
 
     def create_layer(self, name: str, background: Color = (0, 0, 0, 0)):
@@ -53,24 +53,26 @@ class Workspace:
     def update_layer(
         self,
         layer_name: str,
-        new_layer_name: str = None,
-        background: Color = None,
+        new_layer_name: Optional[str] = None,
+        background: Optional[Color] = None,
     ):
         """Creates a layer
 
         Parameters
         ----------
-        name : str
+        layer_name : str
             name of the layer
+        new_layer_name: str, Optional
+            updated name of the layer, defaults to None
         background: Color
-            background color of the layer
+            background color of the layer, defaults to None
 
         Raises
         ------
         ValueError
             if the layer is not available in the workspace
         """
-        if not layer_name in self.layers:
+        if layer_name not in self.layers:
             raise ValueError("Invalid layer name")
 
         if background:

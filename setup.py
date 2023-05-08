@@ -43,7 +43,10 @@ setup(
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
     ],
-    keywords="Pillow, PIL, Pillow wrapper, PIL wrapper, Easy Pillow, Easy PIL, discord rank card, discord card",
+    keywords=(
+        "Pillow, PIL, Pillow wrapper, PIL wrapper, Easy Pillow, "
+        "Easy PIL, discord rank card, discord card"
+    ),
     packages=find_packages(),
     package_data={
         "easy_pil": ["fonts/*/*.ttf"],
