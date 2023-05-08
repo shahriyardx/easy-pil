@@ -1,9 +1,10 @@
-from easy_pil import Editor, Font, Text
+from easy_pil import Editor, Font
 
 background = Editor("assets/wlcbg.jpg")
 profile = Editor("assets/pfp.png").resize((150, 150)).circle_image()
 
-# For profile to use users profile picture load it from url using the load_image/load_image_async function
+# To use users profile picture load it from url
+# using the load_image/load_image_async function
 # profile_image = load_image(str(ctx.author.avatar_url))
 # profile = Editor(profile_image).resize((150, 150)).circle_image()
 

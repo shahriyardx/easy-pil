@@ -1,16 +1,17 @@
-from easy_pil import Canvas, Editor, Font, Text, font
+from easy_pil import Canvas, Editor, Font
 
-background = Editor(Canvas((900, 270), "#23272a"))
+background = Editor(Canvas((900, 270), color="#23272a"))
 profile = Editor("assets/pfp.png").resize((200, 200)).circle_image()
 
-# For profile to use users profile picture load it from url using the load_image/load_image_async function
+# To use users profile picture load it from url
+# using the load_image/load_image_async function
 # profile_image = load_image(str(ctx.author.avatar_url))
 # profile = Editor(profile_image).resize((150, 150)).circle_image()
 
 
 # Fonts to use with different size
 poppins_big = Font.poppins(variant="bold", size=50)
-poppins_mediam = Font.poppins(variant="bold", size=40)
+poppins_medium = Font.poppins(variant="bold", size=40)
 poppins_regular = Font.poppins(variant="regular", size=30)
 poppins_thin = Font.poppins(variant="light", size=18)
 
@@ -32,7 +33,7 @@ background.text(
 background.text(
     (600, 120),
     "YOU ARE MEMBER",
-    font=poppins_mediam,
+    font=poppins_medium,
     color="white",
     align="center",
 )
