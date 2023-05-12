@@ -1,5 +1,6 @@
 # Easy PIL
-A Python library built on top of [PIL](https://github.com/python-pillow/Pillow) to easily edit/modify images. 
+![Lint-Test](https://github.com/shahriyardx/easy-pil/actions/workflows/lint-test.yml/badge.svg)
+A Python library built on top of [PIL](https://github.com/python-pillow/Pillow) to easily edit/modify images.
 
 ## Getting Started
 Using this for the first time? Here are some links to help you get started.

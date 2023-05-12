@@ -10,7 +10,7 @@ from .types.workspace import ComponentKwargs
 class Workspace:
     """Workspace class for working with layers and components"""
 
-    def __init__(self, size: Tuple[float, float]) -> None:
+    def __init__(self, size: Tuple[int, int]) -> None:
         self.size = size
         self.layers: dict = dict()
         self.working_layer = None
@@ -105,8 +105,8 @@ class Workspace:
     def add_component(
         self,
         *,
-        layer_name: str = None,
-        identifier: str = None,
+        layer_name: Optional[str] = None,
+        identifier: Optional[str] = None,
         func: Union[Callable, str],
         options: ComponentKwargs
     ):
@@ -148,7 +148,9 @@ class Workspace:
             "options": options,
         }
 
-    def remove_component(self, *, layer_name: str = None, identifier: str):
+    def remove_component(
+        self, *, layer_name: Optional[str] = None, identifier: str
+    ):
         """Remove component from a layer
 
         Parameters
@@ -179,7 +181,7 @@ class Workspace:
     def update_component(
         self,
         *,
-        layer_name: str = None,
+        layer_name: Optional[str] = None,
         identifier: str,
         options: ComponentKwargs
     ):
@@ -214,7 +216,7 @@ class Workspace:
         )
 
     def __create_editor_layer(
-        self, size: Tuple[float, float], metadata: Dict[str, Any]
+        self, size: Tuple[int, int], metadata: Dict[str, Any]
     ):
         return Editor(Canvas(size, color=metadata["background"]))
 

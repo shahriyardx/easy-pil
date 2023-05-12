@@ -1,4 +1,4 @@
-from typing import Tuple
+from typing import Optional, Tuple
 
 from PIL import Image
 
@@ -10,11 +10,11 @@ class Canvas:
 
     Parameters
     ----------
-    size : Tuple[float, float], optional
+    size : Tuple[int, int], optional
         Size of image, by default None
-    width : float, optional
+    width : int, optional
         Width of image, by default None
-    height : float, optional
+    height : int, optional
         Height of image, by default None
     color : Color, optional
         Color of image, by default None
@@ -27,15 +27,15 @@ class Canvas:
 
     def __init__(
         self,
-        size: Tuple[float, float] = None,
-        width: float = None,
-        height: float = None,
-        color: Color = None,
+        size: Optional[Tuple[int, int]] = None,
+        width: int = 0,
+        height: int = 0,
+        color: Color = 0,
     ) -> None:
-        if not size and not width and not height:
+        if not (size or (width and height)):
             raise ValueError("size, width, and height cannot all be None")
 
-        if width and height:
+        else:
             size = (width, height)
 
         self.size = size
