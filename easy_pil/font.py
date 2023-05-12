@@ -59,7 +59,7 @@ class Font:
         return self.font.getsize(text)
 
     @staticmethod
-    @lru_cache()
+    @lru_cache(32)
     def poppins(
         variant: Literal["regular", "bold", "italic", "light"] = "regular",
         size: int = 10,
@@ -76,7 +76,7 @@ class Font:
         return ImageFont.truetype(fonts_path["poppins"][variant], size=size)
 
     @staticmethod
-    @lru_cache()
+    @lru_cache(32)
     def caveat(
         variant: Literal["regular", "bold", "italic", "light"] = "regular",
         size: int = 10,
@@ -93,7 +93,7 @@ class Font:
         return ImageFont.truetype(fonts_path["caveat"][variant], size=size)
 
     @staticmethod
-    @lru_cache()
+    @lru_cache(32)
     def montserrat(
         variant: Literal["regular", "bold", "italic", "light"] = "regular",
         size: int = 10,
