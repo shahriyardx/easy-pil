@@ -33,7 +33,8 @@ class Editor:
             self.image: Image = _image.convert("RGBA")
         else:
             raise ValueError(
-                "Editor requires an Image, Path, Editor or Canvas to start with"
+                "Editor requires an Image, Path, "
+                "Editor or Canvas to start with"
             )
 
     @property
