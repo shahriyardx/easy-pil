@@ -1,5 +1,6 @@
 # Easy PIL
 ![Lint-Test](https://github.com/shahriyardx/easy-pil/actions/workflows/lint-test.yml/badge.svg)
+
 A Python library built on top of [PIL](https://github.com/python-pillow/Pillow) to easily edit/modify images.
 
 ## Getting Started
