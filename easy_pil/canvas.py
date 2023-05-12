@@ -35,7 +35,7 @@ class Canvas:
         if not (size or (width and height)):
             raise ValueError("size, width, and height cannot all be None")
 
-        else:
+        elif not size:
             size = (width, height)
 
         self.size = size
