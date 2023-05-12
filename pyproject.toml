@@ -1,0 +1,57 @@
+[tool.poetry]
+name = "easy-pil"
+version = "0.2.3"
+description = "A Python library built on top of PIL to easily edit/modify images"
+keywords = ["easy-pil", "easy pillow", "Pillow", "image editing"]
+authors = ["Md Shahriyar Alam <mdshahriyaralam552@gmail.com>"]
+readme = "README.md"
+homepage = "https://github.com/shahriyardx/easy-pil"
+repository = "https://github.com/shahriyardx/easy-pil"
+documentation = "https://easy-pil.readthedocs.io/en/latest/"
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Topic :: Software Development :: Build Tools",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+]
+
+[tool.black]
+line-length = 79
+skip-string-normalization = true
+
+[tool.isort]
+profile = "black"
+combine_as_imports = true
+combine_star = true
+line_length = 79
+
+[tool.poetry.dependencies]
+python = ">=3.8.1,<=3.11"
+pillow = "^9.5.0"
+aiohttp = "^3.8.4"
+requests = "^2.30.0"
+aiocache = "^0.12.1"
+typing-extensions = "^4.5.0"
+
+
+[tool.poetry.group.dev.dependencies]
+black = "^23.3.0"
+isort = "^5.12.0"
+pyright = "^1.1.308"
+flake8 = "^6.0.0"
+pytest = "^7.3.1"
+
+[build-system]
+requires = ["poetry-core", "setuptools", "wheel"]
+build-backend = "poetry.core.masonry.api"
+
+
+
+[tool.commands]
+fmt = "python3 -m black . ;python3 -m isort ."
+build = "python3 -m setup.py sdist bdist_wheel"
+publish = "twine upload dist/* --skip-existing"
