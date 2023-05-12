@@ -13,7 +13,7 @@ space.add_component(
         "color": "red",
         "width": 100,
         "height": 100,
-    },
+    },  # type: ignore
 )
 
 img = space.generate_image()
