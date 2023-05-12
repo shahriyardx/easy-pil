@@ -30,7 +30,7 @@ combine_star = true
 line_length = 79
 
 [tool.poetry.dependencies]
-python = ">=3.8.1,<=3.11"
+python = ">=3.8.1,<3.12"
 pillow = "^9.5.0"
 aiohttp = "^3.8.4"
 requests = "^2.30.0"
