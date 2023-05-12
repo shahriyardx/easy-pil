@@ -180,7 +180,7 @@ class Editor:
 
         Parameters
         ----------
-        image : Union[Image.Image, Editor, Canvas]
+        image : Union[Image, Editor, Canvas]
             Image to blend
         alpha : float, optional
             Alpha amount, by default 0.0
