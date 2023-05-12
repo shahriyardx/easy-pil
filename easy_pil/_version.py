@@ -4,4 +4,4 @@ __version__ = "0.2.3"
 
 VersionInfo = namedtuple("VersionInfo", "major minor macro release")
 
-version_info = VersionInfo(*map(int, __version__.split(".")), "stable")
+version_info = VersionInfo(*map(int, __version__.split(".")), release="stable")

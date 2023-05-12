@@ -1,10 +1,9 @@
 from __future__ import annotations
 
 from io import BytesIO
-from typing import List, Tuple, Union
+from typing import List, Literal, Optional, Tuple, Union
 
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
-from typing_extensions import Literal
 
 from .canvas import Canvas
 from .font import Font
@@ -24,8 +23,6 @@ class Editor:
     def __init__(
         self, image: Union[Image.Image, str, BytesIO, Editor, Canvas]
     ) -> None:
-        self.image = None
-
         if isinstance(image, str) or isinstance(image, BytesIO):
             self.image = Image.open(image).convert("RGBA")
         elif isinstance(image, Canvas) or isinstance(image, Editor):
@@ -48,12 +45,12 @@ class Editor:
         _bytes.seek(0)
         return _bytes
 
-    def resize(self, size: Tuple[float, float], crop=False) -> Editor:
+    def resize(self, size: Tuple[int, int], crop=False) -> Editor:
         """Resize image
 
         Parameters
         ----------
-        size : Tuple[float, float]
+        size : Tuple[int, int]
             New Size of image
         crop : bool, optional
             Crop the image to bypass distortion, by default False
@@ -65,16 +62,16 @@ class Editor:
             width, height = self.image.size
             ideal_width, ideal_height = size
 
-            aspect = width / float(height)
-            ideal_aspect = ideal_width / float(ideal_height)
+            aspect = width / height
+            ideal_aspect = ideal_width / ideal_height
 
             if aspect > ideal_aspect:
-                new_width = int(ideal_aspect * height)
-                offset = (width - new_width) / 2
+                new_width = ideal_aspect * height
+                offset = int((width - new_width) / 2)
                 resize = (offset, 0, width - offset, height)
             else:
-                new_height = int(width / ideal_aspect)
-                offset = (height - new_height) / 2
+                new_height = width / ideal_aspect
+                offset = int((height - new_height) / 2)
                 resize = (0, offset, width, height - offset)
 
             self.image = self.image.crop(resize).resize(
@@ -200,7 +197,7 @@ class Editor:
     def paste(
         self,
         image: Union[Image.Image, Editor, Canvas],
-        position: Tuple[float, float],
+        position: Tuple[int, int],
     ) -> Editor:
         """Paste image into editor
 
@@ -227,10 +224,10 @@ class Editor:
         self,
         position: Tuple[float, float],
         text: str,
-        font: Union[ImageFont.FreeTypeFont, Font] = None,
+        font: Optional[Union[ImageFont.FreeTypeFont, Font]] = None,
         color: Color = "black",
         align: Literal["left", "center", "right"] = "left",
-        stroke_width: int = None,
+        stroke_width: Optional[int] = None,
         stroke_fill: Color = "black",
     ) -> Editor:
         """Draw text into image
@@ -337,9 +334,9 @@ class Editor:
         position: Tuple[float, float],
         width: float,
         height: float,
-        fill: Color = None,
-        color: Color = None,
-        outline: Color = None,
+        fill: Optional[Color] = None,
+        color: Optional[Color] = None,
+        outline: Optional[Color] = None,
         stroke_width: float = 1,
         radius: int = 0,
     ) -> Editor:
@@ -396,9 +393,9 @@ class Editor:
         max_width: Union[int, float],
         height: Union[int, float],
         percentage: int = 1,
-        fill: Color = None,
-        color: Color = None,
-        outline: Color = None,
+        fill: Optional[Color] = None,
+        color: Optional[Color] = None,
+        outline: Optional[Color] = None,
         stroke_width: float = 1,
         radius: int = 0,
     ) -> Editor:
@@ -459,8 +456,8 @@ class Editor:
         width: Union[int, float],
         height: Union[int, float],
         percentage: float,
-        fill: Color = None,
-        color: Color = None,
+        fill: Optional[Color] = None,
+        color: Optional[Color] = None,
         stroke_width: float = 1,
     ) -> Editor:
         """Draw a rounded bar
@@ -505,9 +502,9 @@ class Editor:
         position: Tuple[float, float],
         width: float,
         height: float,
-        fill: Color = None,
-        color: Color = None,
-        outline: Color = None,
+        fill: Optional[Color] = None,
+        color: Optional[Color] = None,
+        outline: Optional[Color] = None,
         stroke_width: float = 1,
     ) -> Editor:
         """Draw an ellipse
@@ -548,9 +545,9 @@ class Editor:
     def polygon(
         self,
         cordinates: list,
-        fill: Color = None,
-        color: Color = None,
-        outline: Color = None,
+        fill: Optional[Color] = None,
+        color: Optional[Color] = None,
+        outline: Optional[Color] = None,
     ) -> Editor:
         """Draw a polygon
 
@@ -580,8 +577,8 @@ class Editor:
         height: float,
         start: float,
         rotation: float,
-        fill: Color = None,
-        color: Color = None,
+        fill: Optional[Color] = None,
+        color: Optional[Color] = None,
         stroke_width: float = 1,
     ) -> Editor:
         """Draw arc
@@ -627,7 +624,7 @@ class Editor:
         """Show the image."""
         self.image.show()
 
-    def save(self, fp, format: str = None, **params):
+    def save(self, fp, format: Optional[str] = None, **params):
         """Save the image
 
         Parameters

@@ -11,5 +11,5 @@ Here are some examples made using easy-pil
    welcome_image
    welcome_image_two
 
-.. note:: 
-   More examples will be added in future. 
+.. note::
+   More examples will be added in future.

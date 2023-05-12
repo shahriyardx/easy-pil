@@ -21,7 +21,7 @@ This will make command author's avatar circular and send it
 
         # Creating nextcord.File object from image_bytes from editor
         file = File(fp=editor.image_bytes, filename='circle.png')
-        
+
         await ctx.send(file=file)
-    
+
     bot.run("TOKEN")

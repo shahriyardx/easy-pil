@@ -18,8 +18,8 @@ def _get_long_desc() -> str:
 def _get_version() -> str:
     vpath = current_directory / "easy_pil" / "_version.py"
     spec = spec_from_file_location(vpath.name[:-3], vpath)
-    mod = module_from_spec(spec)
-    spec.loader.exec_module(mod)
+    mod = module_from_spec(spec)  # type: ignore
+    spec.loader.exec_module(mod)  # type: ignore
 
     return mod.__version__
 

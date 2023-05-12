@@ -6,7 +6,7 @@ A python library built on top of PIL to easily edit images.
    :maxdepth: 2
    :hidden:
    :caption: Contents
-   
+
    pages/intro
    pages/discordbot
    easy_pil/modules
