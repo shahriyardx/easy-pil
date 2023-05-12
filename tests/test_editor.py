@@ -71,7 +71,7 @@ class TestEditor(unittest.TestCase):
     def test_blur(self):
         """Tests editor blur"""
         canvas = Canvas((100, 100), color="black")
-        editor = Editor(canvas).blur(mode="gussian", amount=10)
+        editor = Editor(canvas).blur(mode="gaussian", amount=10)
         self.assertIsInstance(editor, Editor)
 
     def test_blend(self):

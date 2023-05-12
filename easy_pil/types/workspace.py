@@ -1,13 +1,12 @@
 from typing import List, Tuple, Union
 
 try:
-    from typing import TypedDict
+    from typing import Literal, NotRequired, TypedDict
 except ImportError:
-    from typing_extensions import TypedDict
+    from typing_extensions import TypedDict, NotRequired, Literal
 
 from PIL.Image import Image
 from PIL.ImageFont import FreeTypeFont
-from typing_extensions import Literal
 
 from ..canvas import Canvas
 from ..editor import Editor
@@ -16,30 +15,34 @@ from ..text import Text
 
 
 class ComponentKwargs(TypedDict):
-    size: Tuple[float, float]
-    position: Tuple[float, float]
-    crop: bool
-    radius: int
-    offset: int
-    deg: float
-    expand: bool
-    mode: Literal["box", "gussian"]
-    amount: float
-    image: Union[Image, Editor, Canvas]
-    alpha: float
-    on_top: bool
-    text: str
-    font: Union[FreeTypeFont, Font]
-    align: Literal["left", "center", "right"]
-    color: Union[int, str, Tuple[int, int, int], Tuple[int, int, int, int]]
-    fill: Union[int, str, Tuple[int, int, int], Tuple[int, int, int, int]]
-    space_separated: bool
-    texts: List[Text]
-    width: float
-    height: float
-    stoke_width: float
-    outline: float
-    max_width: float
-    percent: int
-    start: float
-    rotation: int
+    size: NotRequired[Tuple[float, float]]
+    position: NotRequired[Tuple[float, float]]
+    crop: NotRequired[bool]
+    radius: NotRequired[int]
+    offset: NotRequired[int]
+    deg: NotRequired[float]
+    expand: NotRequired[bool]
+    mode: NotRequired[Literal["box", "gaussian"]]
+    amount: NotRequired[float]
+    image: NotRequired[Union[Image, Editor, Canvas]]
+    alpha: NotRequired[float]
+    on_top: NotRequired[bool]
+    text: NotRequired[str]
+    font: NotRequired[Union[FreeTypeFont, Font]]
+    align: NotRequired[Literal["left", "center", "right"]]
+    color: NotRequired[
+        Union[int, str, Tuple[int, int, int], Tuple[int, int, int, int]]
+    ]
+    fill: NotRequired[
+        Union[int, str, Tuple[int, int, int], Tuple[int, int, int, int]]
+    ]
+    space_separated: NotRequired[bool]
+    texts: NotRequired[List[Text]]
+    width: NotRequired[float]
+    height: NotRequired[float]
+    stoke_width: NotRequired[float]
+    outline: NotRequired[float]
+    max_width: NotRequired[float]
+    percent: NotRequired[int]
+    start: NotRequired[float]
+    rotation: NotRequired[int]

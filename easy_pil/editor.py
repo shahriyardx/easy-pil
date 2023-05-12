@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 from io import BytesIO
+from pathlib import Path
 from typing import List, Literal, Optional, Tuple, Union
 
-from PIL import Image, ImageDraw, ImageFilter, ImageFont
+from PIL import Image as PilImage, ImageDraw, ImageFilter, ImageFont
+from PIL.Image import Image
 
 from .canvas import Canvas
 from .font import Font
@@ -16,19 +18,24 @@ class Editor:
 
     Parameters
     ----------
-    image : Union[Image.Image, str, Editor, Canvas]
+    _image : Union[Image, str, Editor, Canvas]
         Image or Canvas to edit.
     """
 
     def __init__(
-        self, image: Union[Image.Image, str, BytesIO, Editor, Canvas]
+        self, _image: Union[Image, str, BytesIO, Editor, Canvas]
     ) -> None:
-        if isinstance(image, str) or isinstance(image, BytesIO):
-            self.image = Image.open(image).convert("RGBA")
-        elif isinstance(image, Canvas) or isinstance(image, Editor):
-            self.image = image.image.convert("RGBA")
+        if isinstance(_image, (str, BytesIO, Path)):
+            self.image: Image = PilImage.open(_image)
+        elif isinstance(_image, (Canvas, Editor)):
+            self.image: Image = _image.image.convert("RGBA")
+        elif isinstance(_image, Image):
+            self.image: Image = _image.convert("RGBA")
         else:
-            self.image = image.convert("RGBA")
+            raise ValueError(
+                "Editor requires an Image, Path, "
+                "Editor or Canvas to start with"
+            )
 
     @property
     def image_bytes(self) -> BytesIO:
@@ -56,7 +63,7 @@ class Editor:
             Crop the image to bypass distortion, by default False
         """
         if not crop:
-            self.image = self.image.resize(size, Image.LANCZOS)
+            self.image = self.image.resize(size, PilImage.LANCZOS)
 
         else:
             width, height = self.image.size
@@ -75,7 +82,7 @@ class Editor:
                 resize = (0, offset, width, height - offset)
 
             self.image = self.image.crop(resize).resize(
-                (ideal_width, ideal_height), Image.LANCZOS
+                (ideal_width, ideal_height), PilImage.LANCZOS
             )
 
         return self
@@ -90,13 +97,13 @@ class Editor:
         offset : int, optional
             Offset pixel while making rounded, by default 2
         """
-        background = Image.new(
+        background = PilImage.new(
             "RGBA", size=self.image.size, color=(255, 255, 255, 0)
         )
-        holder = Image.new(
+        holder = PilImage.new(
             "RGBA", size=self.image.size, color=(255, 255, 255, 0)
         )
-        mask = Image.new(
+        mask = PilImage.new(
             "RGBA", size=self.image.size, color=(255, 255, 255, 0)
         )
         mask_draw = ImageDraw.Draw(mask)
@@ -107,26 +114,26 @@ class Editor:
             fill="black",
         )
         holder.paste(self.image, (0, 0))
-        self.image = Image.composite(holder, background, mask)
+        self.image = PilImage.composite(holder, background, mask)
 
         return self
 
     def circle_image(self) -> Editor:
         """Make image circle"""
-        background = Image.new(
+        background = PilImage.new(
             "RGBA", size=self.image.size, color=(255, 255, 255, 0)
         )
-        holder = Image.new(
+        holder = PilImage.new(
             "RGBA", size=self.image.size, color=(255, 255, 255, 0)
         )
-        mask = Image.new(
+        mask = PilImage.new(
             "RGBA", size=self.image.size, color=(255, 255, 255, 0)
         )
         mask_draw = ImageDraw.Draw(mask)
         ellipse_size = tuple(i - 1 for i in self.image.size)
         mask_draw.ellipse((0, 0) + ellipse_size, fill="black")
         holder.paste(self.image, (0, 0))
-        self.image = Image.composite(holder, background, mask)
+        self.image = PilImage.composite(holder, background, mask)
 
         return self
 
@@ -136,28 +143,28 @@ class Editor:
         Parameters
         ----------
         deg : float, optional
-            Degress to rotate, by default 0
+            Degrees to rotate, by default 0
         expand : bool, optional
             Expand while rotating, by default False
         """
-        self.image = self.image.rotate(angle=deg, expand=expand)
+        self.image = self.image.rotate(deg, expand=expand)
         return self
 
     def blur(
-        self, mode: Literal["box", "gussian"] = "gussian", amount: float = 1
+        self, mode: Literal["box", "gaussian"] = "gaussian", amount: float = 1
     ) -> Editor:
         """Blur image
 
         Parameters
         ----------
-        mode : Literal["box", "gussian"], optional
-            Blur mode, by default "gussian"
+        mode : Literal["box", "gaussian"], optional
+            Blur mode, by default "gaussian"
         amount : float, optional
             Amount of blur, by default 1
         """
         if mode == "box":
             self.image = self.image.filter(ImageFilter.BoxBlur(radius=amount))
-        if mode == "gussian":
+        if mode == "gaussian":
             self.image = self.image.filter(
                 ImageFilter.GaussianBlur(radius=amount)
             )
@@ -166,7 +173,7 @@ class Editor:
 
     def blend(
         self,
-        image: Union[Image.Image, Editor, Canvas],
+        image: Union[Image, Editor, Canvas],
         alpha: float = 0.0,
         on_top: bool = False,
     ) -> Editor:
@@ -174,7 +181,7 @@ class Editor:
 
         Parameters
         ----------
-        image : Union[Image.Image, Editor, Canvas]
+        image : Union[Image, Editor, Canvas]
             Image to blend
         alpha : float, optional
             Alpha amount, by default 0.0
@@ -188,27 +195,27 @@ class Editor:
             image = Editor(image).resize(self.image.size, crop=True).image
 
         if on_top:
-            self.image = Image.blend(self.image, image, alpha=alpha)
+            self.image = PilImage.blend(self.image, image, alpha=alpha)
         else:
-            self.image = Image.blend(image, self.image, alpha=alpha)
+            self.image = PilImage.blend(image, self.image, alpha=alpha)
 
         return self
 
     def paste(
         self,
-        image: Union[Image.Image, Editor, Canvas],
+        image: Union[Image, Editor, Canvas],
         position: Tuple[int, int],
     ) -> Editor:
         """Paste image into editor
 
         Parameters
         ----------
-        image : Union[Image.Image, Editor, Canvas]
+        image : Union[Image, Editor, Canvas]
             Image to paste
         position : Tuple[float, float]
             Position to paste
         """
-        blank = Image.new(
+        blank = PilImage.new(
             "RGBA", size=self.image.size, color=(255, 255, 255, 0)
         )
 
@@ -216,7 +223,7 @@ class Editor:
             image = image.image
 
         blank.paste(image, position)
-        self.image = Image.alpha_composite(self.image, blank)
+        self.image = PilImage.alpha_composite(self.image, blank)
 
         return self
 
@@ -235,7 +242,7 @@ class Editor:
         Parameters
         ----------
         position : Tuple[float, float]
-            Position to draw text
+            Position to draw text.
         text : str
             Text to draw
         font : Union[ImageFont.FreeTypeFont, Font], optional
@@ -345,7 +352,7 @@ class Editor:
         Parameters
         ----------
         position : Tuple[float, float]
-            Position to draw recangle
+            Position to draw rectangle
         width : float
             Width of rectangle
         height : float
@@ -410,7 +417,7 @@ class Editor:
         height : Union[int, float]
             Height of the bar
         percentage : int, optional
-            Percebtage to fill of the bar, by default 1
+            Percentage to fill of the bar, by default 1
         fill : Color, optional
             Fill color, by default None
         color : Color, optional
@@ -471,7 +478,7 @@ class Editor:
         height : Union[int, float]
             Height of the bar
         percentage : float
-            Percentage to fill
+            Percentage to fill.
         fill : Color, optional
             Fill color, by default None
         color : Color, optional
@@ -544,7 +551,7 @@ class Editor:
 
     def polygon(
         self,
-        cordinates: list,
+        coordinates: list,
         fill: Optional[Color] = None,
         color: Optional[Color] = None,
         outline: Optional[Color] = None,
@@ -553,8 +560,8 @@ class Editor:
 
         Parameters
         ----------
-        cordinates : list
-            Cordinates to draw
+        coordinates : list
+            Coordinates to draw
         fill : Color, optional
             Fill color, by default None
         color : Color, optional
@@ -566,7 +573,7 @@ class Editor:
             fill = color
 
         draw = ImageDraw.Draw(self.image)
-        draw.polygon(cordinates, fill=fill, outline=outline)
+        draw.polygon(coordinates, fill=fill, outline=outline)
 
         return self
 
@@ -594,7 +601,7 @@ class Editor:
         start : float
             Start position of arch
         rotation : float
-            Rotation in degre
+            Rotation in degree
         fill : Color, optional
             Fill color, by default None
         color : Color, optional
@@ -624,14 +631,14 @@ class Editor:
         """Show the image."""
         self.image.show()
 
-    def save(self, fp, format: Optional[str] = None, **params):
+    def save(self, fp, file_format: Optional[str] = None, **params):
         """Save the image
 
         Parameters
         ----------
         fp : str
             File path
-        format : str, optional
+        file_format : str, optional
             File format, by default None
         """
-        self.image.save(fp, format, **params)
+        self.image.save(fp, file_format, **params)
