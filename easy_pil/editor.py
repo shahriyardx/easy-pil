@@ -23,7 +23,7 @@ class Editor:
     """
 
     def __init__(
-        self, _image: Union[Image, str, BytesIO, Editor, Canvas]
+        self, _image: Union[Image, str, BytesIO, Editor, Canvas, Path]
     ) -> None:
         if isinstance(_image, (str, BytesIO, Path)):
             self.image: Image = PilImage.open(_image)
