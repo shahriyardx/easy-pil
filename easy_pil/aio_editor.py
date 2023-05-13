@@ -273,6 +273,8 @@ class AioEditor:
     async def execute(self):
         editor = Editor(self.image)
         for ins in self.instructions:
-            await asyncio.get_event_loop().run_in_executor(None, editor.__getattribute__(ins.name), *ins.args)
+            await asyncio.get_event_loop().run_in_executor(
+                None, editor.__getattribute__(ins.name), *ins.args
+            )
 
         return editor
