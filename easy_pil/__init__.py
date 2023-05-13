@@ -1,4 +1,5 @@
 from ._version import __version__, version_info
+from .aio_editor import AioEditor
 from .canvas import Canvas
 from .editor import Editor
 from .font import Font
@@ -11,6 +12,7 @@ __all__ = [
     "version_info",
     "Canvas",
     "Editor",
+    "AioEditor",
     "Workspace",
     "Font",
     "Text",
