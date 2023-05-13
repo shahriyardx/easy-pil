@@ -30,21 +30,6 @@ class AioEditor:
         self.image = _image
         self.instructions: List[Instruction] = []
 
-    @property
-    def image_bytes(self) -> BytesIO:
-        """Return image bytes
-
-        Returns
-        -------
-        BytesIO
-            Bytes from the image of Editor
-        """
-        _bytes = BytesIO()
-        self.image.save(_bytes, "png")
-
-        _bytes.seek(0)
-        return _bytes
-
     def resize(self, size: Tuple[int, int], crop=False) -> AioEditor:
         self.instructions.append(Instruction(name="resize", args=[size, crop]))
         return self
