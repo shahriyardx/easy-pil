@@ -1,3 +1,5 @@
+from io import BytesIO
+from pathlib import Path
 from typing import List, Tuple, Union
 
 try:
@@ -24,7 +26,7 @@ class ComponentKwargs(TypedDict):
     expand: NotRequired[bool]
     mode: NotRequired[Literal["box", "gaussian"]]
     amount: NotRequired[float]
-    image: NotRequired[Union[Image, Editor, Canvas]]
+    image: NotRequired[Union[Image, Editor, Canvas, BytesIO, Path, bytes]]
     alpha: NotRequired[float]
     on_top: NotRequired[bool]
     text: NotRequired[str]
