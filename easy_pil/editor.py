@@ -28,14 +28,16 @@ class Editor:
         if isinstance(_image, (str, BytesIO, Path)):
             self.image: Image = PilImage.open(_image)
         elif isinstance(_image, (Canvas, Editor)):
-            self.image: Image = _image.image.convert("RGBA")
+            self.image: Image = _image.image
         elif isinstance(_image, Image):
-            self.image: Image = _image.convert("RGBA")
+            self.image: Image = _image
         else:
             raise ValueError(
                 "Editor requires an Image, Path, "
                 "Editor or Canvas to start with"
             )
+
+        self.image = self.image.convert("RGBA")
 
     @property
     def image_bytes(self) -> BytesIO:
