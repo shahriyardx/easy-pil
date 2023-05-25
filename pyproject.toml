@@ -37,7 +37,6 @@ requests = "^2.30.0"
 aiocache = "^0.12.1"
 typing-extensions = "^4.5.0"
 
-
 [tool.poetry.group.dev.dependencies]
 black = "^23.3.0"
 isort = "^5.12.0"
@@ -45,11 +44,13 @@ pyright = "^1.1.308"
 flake8 = "^6.0.0"
 pytest = "^7.3.1"
 
+[tool.poetry.group.docs.dependencies]
+sphinx = "6.2.1"
+furo = "^2023.3.27"
+
 [build-system]
 requires = ["poetry-core", "setuptools", "wheel"]
 build-backend = "poetry.core.masonry.api"
-
-
 
 [tool.commands]
 fmt = "python3 -m black . ;python3 -m isort ."

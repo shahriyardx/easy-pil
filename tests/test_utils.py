@@ -2,7 +2,7 @@ import unittest
 
 from PIL import Image
 
-from easy_pil import load_image, load_image_async
+from easy_pil import AioEditor, Canvas, Editor, load_image, load_image_async
 
 
 class TestUtils(unittest.IsolatedAsyncioTestCase):
@@ -31,6 +31,13 @@ class TestUtils(unittest.IsolatedAsyncioTestCase):
 
         self.assertIsInstance(img3, Image.Image)
         self.assertIsInstance(img4, Image.Image)
+
+    async def test_aio_editor(self):
+        canvas = Canvas((100, 100), color="black")
+        aio = AioEditor(canvas)
+        editor = await aio.execute()
+
+        self.assertIsInstance(editor, Editor)
 
 
 if __name__ == "__main__":
