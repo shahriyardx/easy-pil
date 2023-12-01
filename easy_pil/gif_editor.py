@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from io import BytesIO
 from pathlib import Path
-from typing import List, Union
+from typing import List, Union, Tuple
 
 from PIL import Image as PilImage, ImageSequence
 from PIL.GifImagePlugin import GifImageFile
@@ -21,7 +21,7 @@ class GifEditor:
         self.frames: List[Editor] = list(
             map(lambda x: Editor(x), self.original_frames)
         )
-        self.size: List[int, int] = list(self.image.size)
+        self.size: Tuple[int, int] = self.image.size
 
     def __getattr__(self, name):
         def wrapper(*args, **kwargs):

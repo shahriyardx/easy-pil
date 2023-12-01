@@ -2,7 +2,7 @@ import asyncio
 import functools
 from functools import lru_cache
 from io import BytesIO
-from typing import Union
+from typing import Union, Optional
 
 import aiohttp
 import requests
@@ -52,7 +52,7 @@ def load_image(
 
 @cached(ttl=60 * 60 * 24)
 async def load_image_async(
-    link: str, session: aiohttp.ClientSession = None, raw: bool = False
+    link: str, session: Optional[aiohttp.ClientSession] = None, raw: bool = False
 ) -> Union[Image.Image, GifImageFile]:
     """Load image from link (async)
 
