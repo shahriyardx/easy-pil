@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "easy-pil"
-version = "0.3.0"
+version = "0.3.1"
 description = "A Python library built on top of PIL to easily edit/modify images"
 keywords = ["easy-pil", "easy pillow", "Pillow", "image editing"]
 authors = ["Md Shahriyar Alam <mdshahriyaralam552@gmail.com>"]

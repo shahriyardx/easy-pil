@@ -21,6 +21,7 @@ class GifEditor:
         self.frames: List[Editor] = list(
             map(lambda x: Editor(x), self.original_frames)
         )
+        self.size: List[int, int] = list(self.image.size)
 
     def __getattr__(self, name):
         def wrapper(*args, **kwargs):
