@@ -17,14 +17,14 @@ class TestEditor(unittest.TestCase):
     def test_from_path(self):
         """Tests editor from path"""
         editor = Editor(
-            os.path.join(os.getcwd(), "examples", "assets", "pfp.png")
+            os.path.join(os.getcwd(), "examples", "dev/assets", "pfp.png")
         )
         self.assertIsInstance(editor, Editor)
 
     def test_from_image(self):
         """Tests editor from image"""
         image = Image.open(
-            os.path.join(os.getcwd(), "examples", "assets", "pfp.png")
+            os.path.join(os.getcwd(), "examples", "dev/assets", "pfp.png")
         )
         editor = Editor(image)
         self.assertIsInstance(editor, Editor)
