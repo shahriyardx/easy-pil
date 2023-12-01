@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from io import BytesIO
 from pathlib import Path
-from typing import List, Union, Tuple
+from typing import List, Tuple, Union
 
 from PIL import Image as PilImage, ImageSequence
 from PIL.GifImagePlugin import GifImageFile
