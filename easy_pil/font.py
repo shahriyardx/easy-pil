@@ -56,7 +56,8 @@ class Font:
         self.font = ImageFont.truetype(path, size=size, **kwargs)
 
     def getsize(self, text: str):
-        return self.font.getsize(text)
+        bbox = self.font.getbbox(text)
+        return bbox[2], bbox[3]
 
     @staticmethod
     @lru_cache(32)

@@ -3,6 +3,7 @@
 local_test.py
 main.py
 ignored/
+/tests/dev
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

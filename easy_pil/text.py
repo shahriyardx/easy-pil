@@ -35,4 +35,5 @@ class Text:
             self.font = font
 
     def getsize(self):
-        return self.font.getsize(self.text)
+        bbox = self.font.getbbox(self.text)
+        return bbox[2], bbox[3]

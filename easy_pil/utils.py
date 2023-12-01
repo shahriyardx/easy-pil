@@ -2,11 +2,13 @@ import asyncio
 import functools
 from functools import lru_cache
 from io import BytesIO
+from typing import Optional, Union
 
 import aiohttp
 import requests
 from aiocache import cached
 from PIL import Image
+from PIL.GifImagePlugin import GifImageFile
 
 
 async def run_in_executor(func, **kwargs):
@@ -23,13 +25,17 @@ async def run_in_executor(func, **kwargs):
 
 
 @lru_cache(maxsize=32)
-def load_image(link: str) -> Image.Image:
+def load_image(
+    link: str, raw: bool = False
+) -> Union[Image.Image, GifImageFile]:
     """Load image from link
 
     Parameters
     ----------
     link : str
         Image link
+    raw: bool
+        if you want the raw image without any conversion
 
     Returns
     -------
@@ -37,13 +43,19 @@ def load_image(link: str) -> Image.Image:
         Image from the provided link (if any)
     """
     _bytes = BytesIO(requests.get(link).content)
-    image = Image.open(_bytes).convert("RGBA")
+    image = Image.open(_bytes)
+    if not raw:
+        image = image.convert("RGBA")
 
     return image
 
 
 @cached(ttl=60 * 60 * 24)
-async def load_image_async(link: str, session: aiohttp.ClientSession = None) -> Image.Image:
+async def load_image_async(
+    link: str,
+    session: Optional[aiohttp.ClientSession] = None,
+    raw: bool = False,
+) -> Union[Image.Image, GifImageFile]:
     """Load image from link (async)
 
     Parameters
@@ -52,6 +64,8 @@ async def load_image_async(link: str, session: aiohttp.ClientSession = None) -> 
         Image from the provided link (if any)
     session: aiohttp.ClientSession
         clientSession for making requests, defaults to None
+    raw: bool
+        if you want the raw image without any conversion
 
     Returns
     -------
@@ -67,5 +81,8 @@ async def load_image_async(link: str, session: aiohttp.ClientSession = None) -> 
                 data = await response.read()
 
     _bytes = BytesIO(data)
-    image = Image.open(_bytes).convert("RGBA")
+    image = Image.open(_bytes)
+    if not raw:
+        image = image.convert("RGBA")
+
     return image
