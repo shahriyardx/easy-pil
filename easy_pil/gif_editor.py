@@ -1,10 +1,13 @@
 from __future__ import annotations
-from typing import Union, List
-from .editor import Editor
-from pathlib import Path
+
 from io import BytesIO
-from PIL.GifImagePlugin import GifImageFile
+from pathlib import Path
+from typing import List, Union
+
 from PIL import Image as PilImage, ImageSequence
+from PIL.GifImagePlugin import GifImageFile
+
+from .editor import Editor
 
 
 class GifEditor:
@@ -15,7 +18,9 @@ class GifEditor:
             self.image = image
 
         self.original_frames = ImageSequence.Iterator(self.image)
-        self.frames: List[Editor] = list(map(lambda x: Editor(x), self.original_frames))
+        self.frames: List[Editor] = list(
+            map(lambda x: Editor(x), self.original_frames)
+        )
 
     def __getattr__(self, name):
         def wrapper(*args, **kwargs):
@@ -49,4 +54,6 @@ class GifEditor:
             File path
         """
         images = list(map(lambda e: e.image, self.frames))
-        images[0].save(fp, "GIF", save_all=True, append_images=images[1:], **kwargs)
+        images[0].save(
+            fp, "GIF", save_all=True, append_images=images[1:], **kwargs
+        )

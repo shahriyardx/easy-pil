@@ -2,15 +2,13 @@ import asyncio
 import functools
 from functools import lru_cache
 from io import BytesIO
-from typing import Union, List
-from pathlib import Path
+from typing import Union
 
 import aiohttp
 import requests
 from aiocache import cached
 from PIL import Image
 from PIL.GifImagePlugin import GifImageFile
-from .editor import Editor
 
 
 async def run_in_executor(func, **kwargs):
