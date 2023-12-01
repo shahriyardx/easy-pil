@@ -43,13 +43,15 @@ def load_image(link: str) -> Image.Image:
 
 
 @cached(ttl=60 * 60 * 24)
-async def load_image_async(link: str, session=None) -> Image.Image:
+async def load_image_async(link: str, session: aiohttp.ClientSession = None) -> Image.Image:
     """Load image from link (async)
 
     Parameters
     ----------
     link : str
         Image from the provided link (if any)
+    session: aiohttp.ClientSession
+        clientSession for making requests, defaults to None
 
     Returns
     -------
