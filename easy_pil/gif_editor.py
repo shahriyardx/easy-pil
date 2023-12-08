@@ -27,6 +27,7 @@ class GifEditor:
         def wrapper(*args, **kwargs):
             for frame in self.frames:
                 getattr(frame, name)(*args, **kwargs)
+                getattr(frame, "close")()
 
         return wrapper
 

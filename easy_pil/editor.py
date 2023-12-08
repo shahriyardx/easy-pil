@@ -54,6 +54,9 @@ class Editor:
         _bytes.seek(0)
         return _bytes
 
+    def close(self):
+        self.image.close()
+
     def resize(self, size: Tuple[int, int], crop=False) -> Editor:
         """Resize image
 
@@ -118,6 +121,10 @@ class Editor:
         holder.paste(self.image, (0, 0))
         self.image = PilImage.composite(holder, background, mask)
 
+        background.close()
+        holder.close()
+        mask.close()
+
         return self
 
     def circle_image(self) -> Editor:
@@ -136,6 +143,10 @@ class Editor:
         mask_draw.ellipse((0, 0) + ellipse_size, fill="black")
         holder.paste(self.image, (0, 0))
         self.image = PilImage.composite(holder, background, mask)
+
+        background.close()
+        holder.close()
+        mask.close()
 
         return self
 
@@ -226,6 +237,8 @@ class Editor:
 
         blank.paste(image, position)
         self.image = PilImage.alpha_composite(self.image, blank)
+
+        blank.close()
 
         return self
 
