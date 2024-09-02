@@ -1,5 +1,5 @@
 aiocache==0.12.2
-aiohttp~=3.10.5
+aiohttp>=3.10.0
 Pillow==10.1.0
 requests==2.31.0
 typing_extensions==4.8.0
