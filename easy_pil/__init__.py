@@ -13,6 +13,7 @@ __all__ = [
     "version_info",
     "Canvas",
     "Editor",
+    "GifEditor",
     "AioEditor",
     "Workspace",
     "Font",
