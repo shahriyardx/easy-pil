@@ -225,7 +225,7 @@ class Editor:
         ----------
         image : Union[Image, Editor, Canvas]
             Image to paste
-        position : Tuple[float, float]
+        position : Tuple[int, int]
             Position to paste
         """
         blank = PilImage.new(
@@ -244,7 +244,7 @@ class Editor:
 
     def text(
         self,
-        position: Tuple[float, float],
+        position: Tuple[int, int],
         text: str,
         font: Optional[Union[ImageFont.FreeTypeFont, Font]] = None,
         color: Color = "black",
@@ -256,7 +256,7 @@ class Editor:
 
         Parameters
         ----------
-        position : Tuple[float, float]
+        position : Tuple[int, int]
             Position to draw text.
         text : str
             Text to draw
@@ -297,7 +297,7 @@ class Editor:
 
     def multi_text(
         self,
-        position: Tuple[float, float],
+        position: Tuple[int, int],
         texts: List[Text],
         space_separated: bool = True,
         align: Literal["left", "center", "right"] = "left",
@@ -306,7 +306,7 @@ class Editor:
 
         Parameters
         ----------
-        position : Tuple[float, float]
+        position : Tuple[int, int]
             Position to draw text
         texts : List[Text]
             List of texts
@@ -326,7 +326,7 @@ class Editor:
             for text in texts:
                 total_width += text.font.getlength(text.text)
 
-            position = (position[0] - total_width, position[1])
+            position = (int(position[0] - total_width), int(position[1]))
 
         if align == "center":
             total_width = 0
@@ -334,7 +334,7 @@ class Editor:
             for text in texts:
                 total_width += text.font.getlength(text.text)
 
-            position = (position[0] - (total_width / 2), position[1])
+            position = (int(position[0] - (total_width / 2)), int(position[1]))
 
         for text in texts:
             sentence = text.text
@@ -347,13 +347,13 @@ class Editor:
                 width = font.getlength(sentence)
 
             draw.text(position, sentence, color, font=font, anchor="lm")
-            position = (position[0] + width, position[1])
+            position = (int(position[0] + width), int(position[1]))
 
         return self
 
     def rectangle(
         self,
-        position: Tuple[float, float],
+        position: Tuple[int, int],
         width: float,
         height: float,
         fill: Optional[Color] = None,
@@ -366,7 +366,7 @@ class Editor:
 
         Parameters
         ----------
-        position : Tuple[float, float]
+        position : Tuple[int, int]
             Position to draw rectangle
         width : float
             Width of rectangle
@@ -411,7 +411,7 @@ class Editor:
 
     def bar(
         self,
-        position: Tuple[float, float],
+        position: Tuple[int, int],
         max_width: Union[int, float],
         height: Union[int, float],
         percentage: int = 1,
@@ -425,7 +425,7 @@ class Editor:
 
         Parameters
         ----------
-        position : Tuple[float, float]
+        position : Tuple[int, int]
             Position to draw bar
         max_width : Union[int, float]
             Max width of the bar
@@ -447,9 +447,11 @@ class Editor:
         if color:
             fill = color
 
-        bg = PilImage.new("RGBA", (max_width, height), (0, 0, 0, 0))
-        main = PilImage.new("RGBA", (max_width, height), (0, 0, 0, 0))
-        mask = PilImage.new("L", (max_width, height), 0)
+        bg = PilImage.new("RGBA", (int(max_width), int(height)), (0, 0, 0, 0))
+        main = PilImage.new(
+            "RGBA", (int(max_width), int(height)), (0, 0, 0, 0)
+        )
+        mask = PilImage.new("L", (int(max_width), int(height)), 0)
 
         main_draw = ImageDraw.Draw(main)
 
@@ -496,7 +498,7 @@ class Editor:
 
     def rounded_bar(
         self,
-        position: Tuple[float, float],
+        position: Tuple[int, int],
         width: Union[int, float],
         height: Union[int, float],
         percentage: float,
@@ -508,7 +510,7 @@ class Editor:
 
         Parameters
         ----------
-        position : Tuple[float, float]
+        position : Tuple[int, int]
             Position to draw rounded bar
         width : Union[int, float]
             Width of the bar
@@ -543,7 +545,7 @@ class Editor:
 
     def ellipse(
         self,
-        position: Tuple[float, float],
+        position: Tuple[int, int],
         width: float,
         height: float,
         fill: Optional[Color] = None,
@@ -555,7 +557,7 @@ class Editor:
 
         Parameters
         ----------
-        position : Tuple[float, float]
+        position : Tuple[int, int]
             Position to draw ellipse
         width : float
             Width of ellipse
@@ -616,7 +618,7 @@ class Editor:
 
     def arc(
         self,
-        position: Tuple[float, float],
+        position: Tuple[int, int],
         width: float,
         height: float,
         start: float,
@@ -629,7 +631,7 @@ class Editor:
 
         Parameters
         ----------
-        position : Tuple[float, float]
+        position : Tuple[int, int]
             Position to draw arc
         width : float
             Width or arc
