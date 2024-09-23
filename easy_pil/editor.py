@@ -444,31 +444,53 @@ class Editor:
         radius : int, optional
             Radius of the bar, by default 0
         """
-        draw = ImageDraw.Draw(self.image)
-
         if color:
             fill = color
 
-        ratio = max_width / 100
-        to_width = ratio * percentage + position[0]
+        bg = PilImage.new("RGBA", (max_width, height), (0, 0, 0, 0))
+        main = PilImage.new("RGBA", (max_width, height), (0, 0, 0, 0))
+        mask = PilImage.new("L", (max_width, height), 0)
 
-        height = height + position[1]
+        main_draw = ImageDraw.Draw(main)
 
+        if percentage > 100 or percentage < 0:
+            raise ValueError("Percentage must be between 1 and 100")
+
+        bar_width = int((max_width / 100) * percentage)
+
+        print(bar_width)
         if radius <= 0:
-            draw.rectangle(
-                position + (to_width, height),
+            main_draw.rectangle(
+                (0, 0) + (bar_width, height),
                 fill=fill,
                 outline=outline,
                 width=stroke_width,
             )
         else:
-            draw.rounded_rectangle(
-                position + (to_width, height),
+            main_draw.rounded_rectangle(
+                (0, 0) + (bar_width, height),
                 radius=radius,
                 fill=fill,
                 outline=outline,
                 width=stroke_width,
             )
+
+        mask_draw = ImageDraw.Draw(mask)
+        mask_draw.rounded_rectangle(
+            (0, 0) + (max_width, height),
+            radius=radius,
+            fill=255,
+            outline=255,
+            width=stroke_width,
+        )
+
+        final = PilImage.composite(main, bg, mask)
+        self.paste(final, (position))
+
+        main.close()
+        final.close()
+        bg.close()
+        mask.close()
 
         return self
 

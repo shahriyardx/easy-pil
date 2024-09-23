@@ -1,6 +1,5 @@
 import asyncio
 import functools
-from functools import lru_cache
 from io import BytesIO
 from typing import Optional, Union
 
@@ -24,7 +23,6 @@ async def run_in_executor(func, **kwargs):
     return data
 
 
-@lru_cache(maxsize=32)
 def load_image(
     link: str, raw: bool = False
 ) -> Union[Image.Image, GifImageFile]:
