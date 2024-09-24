@@ -460,7 +460,6 @@ class Editor:
 
         bar_width = int((max_width / 100) * percentage)
 
-        print(bar_width)
         if radius <= 0:
             main_draw.rectangle(
                 (0, 0) + (bar_width, height),
