@@ -57,12 +57,12 @@ class Editor:
     def close(self):
         self.image.close()
 
-    def resize(self, size: Tuple[float, float], crop=False) -> Editor:
+    def resize(self, size: Tuple[int, int], crop=False) -> Editor:
         """Resize image
 
         Parameters
         ----------
-        size : Tuple[float, float]
+        size : Tuple[int, int]
             New Size of image
         crop : bool, optional
             Crop the image to bypass distortion, by default False
