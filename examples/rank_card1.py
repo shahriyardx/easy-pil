@@ -5,7 +5,7 @@ user_data = {  # Most likely coming from database or calculation
     "xp": 1240,
     "next_level_xp": 5000,
     "level": 5,
-    "percentage": 45,
+    "percentage": 0,
 }
 
 background = Editor(Canvas((900, 300), color="#23272A"))
@@ -34,6 +34,7 @@ background.bar(
     percentage=user_data["percentage"],
     fill="#3db374",
     radius=20,
+    stroke_width=0,
 )
 background.text((200, 40), user_data["name"], font=poppins, color="white")
 

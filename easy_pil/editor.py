@@ -57,12 +57,12 @@ class Editor:
     def close(self):
         self.image.close()
 
-    def resize(self, size: Tuple[int, int], crop=False) -> Editor:
+    def resize(self, size: Tuple[float, float], crop=False) -> Editor:
         """Resize image
 
         Parameters
         ----------
-        size : Tuple[int, int]
+        size : Tuple[float, float]
             New Size of image
         crop : bool, optional
             Crop the image to bypass distortion, by default False
@@ -244,7 +244,7 @@ class Editor:
 
     def text(
         self,
-        position: Tuple[int, int],
+        position: Tuple[float, float],
         text: str,
         font: Optional[Union[ImageFont.FreeTypeFont, Font]] = None,
         color: Color = "black",
@@ -256,7 +256,7 @@ class Editor:
 
         Parameters
         ----------
-        position : Tuple[int, int]
+        position : Tuple[float, float]
             Position to draw text.
         text : str
             Text to draw
@@ -297,7 +297,7 @@ class Editor:
 
     def multi_text(
         self,
-        position: Tuple[int, int],
+        position: Tuple[float, float],
         texts: List[Text],
         space_separated: bool = True,
         align: Literal["left", "center", "right"] = "left",
@@ -306,7 +306,7 @@ class Editor:
 
         Parameters
         ----------
-        position : Tuple[int, int]
+        position : Tuple[float, float]
             Position to draw text
         texts : List[Text]
             List of texts
@@ -323,16 +323,16 @@ class Editor:
         if align == "right":
             total_width = 0
 
-            for text in texts:
-                total_width += text.font.getlength(text.text)
+            for t in texts:
+                total_width += t.font.getlength(t.text)
 
             position = (int(position[0] - total_width), int(position[1]))
 
         if align == "center":
             total_width = 0
 
-            for text in texts:
-                total_width += text.font.getlength(text.text)
+            for t in texts:
+                total_width += t.font.getlength(t.text)
 
             position = (int(position[0] - (total_width / 2)), int(position[1]))
 
@@ -353,7 +353,7 @@ class Editor:
 
     def rectangle(
         self,
-        position: Tuple[int, int],
+        position: Tuple[float, float],
         width: float,
         height: float,
         fill: Optional[Color] = None,
@@ -366,7 +366,7 @@ class Editor:
 
         Parameters
         ----------
-        position : Tuple[int, int]
+        position : Tuple[float, float]
             Position to draw rectangle
         width : float
             Width of rectangle
@@ -444,6 +444,9 @@ class Editor:
         radius : int, optional
             Radius of the bar, by default 0
         """
+        if percentage == 0:
+            return self
+
         if color:
             fill = color
 
@@ -452,7 +455,6 @@ class Editor:
             "RGBA", (int(max_width), int(height)), (0, 0, 0, 0)
         )
         mask = PilImage.new("L", (int(max_width), int(height)), 0)
-
         main_draw = ImageDraw.Draw(main)
 
         if percentage > 100 or percentage < 0:
@@ -486,7 +488,7 @@ class Editor:
         )
 
         final = PilImage.composite(main, bg, mask)
-        self.paste(final, (position))
+        self.paste(final, position)
 
         main.close()
         final.close()
@@ -497,7 +499,7 @@ class Editor:
 
     def rounded_bar(
         self,
-        position: Tuple[int, int],
+        position: Tuple[float, float],
         width: Union[int, float],
         height: Union[int, float],
         percentage: float,
@@ -509,7 +511,7 @@ class Editor:
 
         Parameters
         ----------
-        position : Tuple[int, int]
+        position : Tuple[float, float]
             Position to draw rounded bar
         width : Union[int, float]
             Width of the bar
@@ -544,7 +546,7 @@ class Editor:
 
     def ellipse(
         self,
-        position: Tuple[int, int],
+        position: Tuple[float, float],
         width: float,
         height: float,
         fill: Optional[Color] = None,
@@ -556,7 +558,7 @@ class Editor:
 
         Parameters
         ----------
-        position : Tuple[int, int]
+        position : Tuple[float, float]
             Position to draw ellipse
         width : float
             Width of ellipse
@@ -617,7 +619,7 @@ class Editor:
 
     def arc(
         self,
-        position: Tuple[int, int],
+        position: Tuple[float, float],
         width: float,
         height: float,
         start: float,
@@ -630,7 +632,7 @@ class Editor:
 
         Parameters
         ----------
-        position : Tuple[int, int]
+        position : Tuple[float, float]
             Position to draw arc
         width : float
             Width or arc
