@@ -5,7 +5,7 @@ user_data = {  # Most likely coming from database or calculation
     "xp": 1240,
     "next_level_xp": 5000,
     "level": 5,
-    "percentage": 0,
+    "percentage": 23,
 }
 
 background = Editor(Canvas((900, 300), color="#23272A"))
