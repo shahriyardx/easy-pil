@@ -5,7 +5,6 @@ from typing import Optional, Union
 
 import aiohttp
 import requests
-from aiocache import cached
 from PIL import Image
 from PIL.GifImagePlugin import GifImageFile
 
@@ -48,7 +47,6 @@ def load_image(
     return image
 
 
-@cached(ttl=60 * 60 * 24)
 async def load_image_async(
     link: str,
     session: Optional[aiohttp.ClientSession] = None,
