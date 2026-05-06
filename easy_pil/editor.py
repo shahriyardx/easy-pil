@@ -549,7 +549,15 @@ class Editor:
         """
         shadow_pos = (position[0] + shadow_offset[0], position[1] + shadow_offset[1])
         self.text(shadow_pos, text, font, color=shadow_color, align=align)
-        return self.text(position, text, font, color=color, align=align, stroke_width=stroke_width, stroke_fill=stroke_fill)
+        return self.text(
+            position,
+            text,
+            font,
+            color=color,
+            align=align,
+            stroke_width=stroke_width,
+            stroke_fill=stroke_fill,
+        )
 
     def rectangle(  # noqa: PLR0913
         self,
@@ -997,7 +1005,9 @@ class Editor:
         if isinstance(mask_image, Editor):
             mask_image = mask_image.image
 
-        mask_img = mask_image.convert("L").resize(self.image.size, PilImage.Resampling.LANCZOS)
+        mask_img = mask_image.convert("L").resize(
+            self.image.size, PilImage.Resampling.LANCZOS
+        )
         if invert:
             mask_img = ImageOps.invert(mask_img)
 

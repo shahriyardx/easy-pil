@@ -226,10 +226,14 @@ class Glow(Effect):
             color_rgba = (255, 255, 255, int(self.alpha * 255))
 
         color_layer = PilImage.new("RGBA", (w, h), color_rgba)
-        color_layer.putalpha(alpha_channel.point(lambda x: int(x * (color_rgba[3] / 255))))
+        color_layer.putalpha(
+            alpha_channel.point(lambda x: int(x * (color_rgba[3] / 255)))
+        )
 
         if self.radius > 0:
-            color_layer = color_layer.filter(ImageFilter.GaussianBlur(radius=self.radius))
+            color_layer = color_layer.filter(
+                ImageFilter.GaussianBlur(radius=self.radius)
+            )
 
         result = PilImage.alpha_composite(color_layer, image.convert("RGBA"))
         return result
@@ -261,7 +265,9 @@ class Gradient(Effect):
         self.direction = direction
 
     @staticmethod
-    def _lerp_color(c1: tuple[int, ...], c2: tuple[int, ...], t: float) -> tuple[int, ...]:
+    def _lerp_color(
+        c1: tuple[int, ...], c2: tuple[int, ...], t: float
+    ) -> tuple[int, ...]:
         return tuple(int(a + (b - a) * t) for a, b in zip(c1[:3], c2[:3]))
 
     def apply(self, image: PilImage.Image) -> PilImage.Image:
@@ -579,7 +585,9 @@ class Bloom(Effect):
         bright_parts = PilImage.composite(img, blank, bright_mask)
 
         if self.radius > 0:
-            bright_parts = bright_parts.filter(ImageFilter.GaussianBlur(radius=self.radius))
+            bright_parts = bright_parts.filter(
+                ImageFilter.GaussianBlur(radius=self.radius)
+            )
 
         return PilImage.blend(img, bright_parts, self.intensity)
 
@@ -935,6 +943,7 @@ class Glitch(Effect):
 
     def apply(self, image: PilImage.Image) -> PilImage.Image:
         import random as _random
+
         img = image.convert("RGBA")
         w, h = img.size
         result = img.copy()
@@ -1023,7 +1032,9 @@ class Cartoon(Effect):
             edges = edges.filter(ImageFilter.MaxFilter(size))
 
         posterized = posterized.convert("RGBA")
-        edge_layer = ImageOps.colorize(edges, black=(0, 0, 0), white=(0, 0, 0)).convert("RGBA")
+        edge_layer = ImageOps.colorize(edges, black=(0, 0, 0), white=(0, 0, 0)).convert(
+            "RGBA"
+        )
         edge_layer.putalpha(edges)
 
         return PilImage.alpha_composite(edge_layer, posterized)
@@ -1047,7 +1058,11 @@ class Thermal(Effect):
             elif t < 0.75:
                 r, g, b = int((t - 0.5) * 4 * 255), 200 - int((t - 0.5) * 4 * 100), 0
             else:
-                r, g, b = 255, 100 + int((t - 0.75) * 4 * 155), int((t - 0.75) * 4 * 100)
+                r, g, b = (
+                    255,
+                    100 + int((t - 0.75) * 4 * 155),
+                    int((t - 0.75) * 4 * 100),
+                )
             palette.extend([r, g, b])
 
         palette += [0] * (768 - len(palette))
@@ -1195,7 +1210,9 @@ class Neon(Effect):
         grey = img.convert("L")
         edges = grey.filter(ImageFilter.FIND_EDGES)
 
-        white: str | tuple[int, ...] = self.color if isinstance(self.color, (str, tuple)) else (0, 255, 255)  # type: ignore[assignment]
+        white: str | tuple[int, ...] = (
+            self.color if isinstance(self.color, (str, tuple)) else (0, 255, 255)
+        )  # type: ignore[assignment]
         colored = ImageOps.colorize(edges, black=(0, 0, 0), white=white).convert("RGBA")
         colored.putalpha(edges)
 
