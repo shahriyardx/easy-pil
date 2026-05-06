@@ -1,7 +1,6 @@
 # Easy PIL
 
 [![PyPI](https://img.shields.io/pypi/v/easy-pil)](https://pypi.org/project/easy-pil/)
-[![Python versions](https://img.shields.io/pypi/pyversions/easy-pil)](https://pypi.org/project/easy-pil/)
 [![Lint & Test](https://github.com/shahriyardx/easy-pil/actions/workflows/lint-test.yml/badge.svg)](https://github.com/shahriyardx/easy-pil/actions/workflows/lint-test.yml)
 [![License](https://img.shields.io/github/license/shahriyardx/easy-pil)](https://github.com/shahriyardx/easy-pil/blob/master/LICENSE)
 
