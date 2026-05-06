@@ -7,7 +7,7 @@ keywords = ["easy-pil", "easy pillow", "Pillow", "image editing"]
 authors = [
     { name = "Md Shahriyar Alam", email = "mdshahriyaralam552@gmail.com" },
 ]
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 dependencies = [
     "aiohttp>=3.13.5",
     "pillow>=12.2.0",

@@ -4,7 +4,7 @@ This is the documentation for easy-pil, A python library built on top of PIL to 
 
 Prerequisties
 -------------
-easy-pil requires python 3.10 or higher.
+easy-pil requires python 3.11 or higher.
 
 Installing
 -----------
