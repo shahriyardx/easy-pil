@@ -14,8 +14,6 @@ from .canvas import Canvas, Color
 from .font import Font
 from .text import Text
 
-MAX_PERCENTAGE = 100
-
 
 class Editor:
     """
@@ -508,11 +506,11 @@ class Editor:
         mask = PilImage.new("L", (int(max_width), int(height)), 0)
         main_draw = ImageDraw.Draw(main)
 
-        if percentage > MAX_PERCENTAGE or percentage < 0:
+        if percentage > 100 or percentage < 0:
             msg = "Percentage must be between 0 and 100"
             raise ValueError(msg)
 
-        bar_width = int((max_width / MAX_PERCENTAGE) * percentage)
+        bar_width = int((max_width / 100) * percentage)
 
         if radius <= 0:
             main_draw.rectangle(

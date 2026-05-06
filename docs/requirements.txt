@@ -1,5 +1,2 @@
-furo>=2024.0.0
-aiohttp>=3.13.5
-Pillow>=12.2.0
-requests>=2.33.1
-typing_extensions>=4.15.0
+furo>=2025.12.19
+sphinx>=8.2.0

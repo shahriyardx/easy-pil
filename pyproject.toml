@@ -29,14 +29,12 @@ Issues = "https://github.com/shahriyardx/easy-pil/issues"
 
 [dependency-groups]
 dev = [
-    "black>=25.0.0",
-    "isort>=6.0.0",
     "pytest>=8.0.0",
     "ruff>=0.11.0",
 ]
 docs = [
-    "sphinx>=8.0.0",
-    "furo>=2024.0.0",
+    "sphinx>=8.2.0",
+    "furo>=2025.12.19",
 ]
 
 [build-system]
