@@ -3,10 +3,12 @@
 import unittest
 from io import BytesIO
 from pathlib import Path
+from unittest.mock import patch
 
 from PIL import Image
 
 from easy_pil import Canvas, Editor, Font, Text
+from easy_pil.font import fonts_path
 
 
 class TestEditor(unittest.TestCase):
@@ -168,6 +170,12 @@ class TestEditor(unittest.TestCase):
         """Tests text_box with Font object."""
         font = Font.poppins(size=16)
         editor = self.editor.text_box((10, 10), "Hi", font)
+        assert isinstance(editor, Editor)
+
+    def test_text_box_with_font_instance(self) -> None:
+        """Tests text_box with Font instance (not FreeTypeFont)."""
+        f = Font(fonts_path["poppins"]["regular"], size=16)
+        editor = self.editor.text_box((10, 10), "Hi", f)
         assert isinstance(editor, Editor)
 
     def test_text_shadow(self) -> None:
@@ -473,6 +481,90 @@ class TestEditor(unittest.TestCase):
     def test_close(self) -> None:
         """Tests editor close."""
         self.editor.close()  # should not raise
+
+    # --- edge case branches ---
+
+    def test_resize_crop_aspect_wide(self) -> None:
+        """Tests resize crop when src aspect > target aspect."""
+        editor = self.editor.resize((50, 100), crop=True)
+        assert isinstance(editor, Editor)
+
+    def test_text_with_font_instance(self) -> None:
+        """Tests text with Font instance (not FreeTypeFont)."""
+        f = Font(fonts_path["poppins"]["regular"], size=20)
+        editor = self.editor.text((10, 10), "Hi", font=f)
+        assert isinstance(editor, Editor)
+
+    def test_text_box_wrap_center(self) -> None:
+        """Tests text_box wrapping with center align."""
+        editor = self.editor.text_box(
+            (10, 10),
+            "Hello World this is a very long text that should wrap multiple lines",
+            Font.poppins(size=14),
+            color="white", max_width=40, align="center",
+        )
+        assert isinstance(editor, Editor)
+
+    def test_text_box_wrap_right(self) -> None:
+        """Tests text_box wrapping with right align."""
+        editor = self.editor.text_box(
+            (10, 10),
+            "Hello World this is a very long text that should wrap multiple lines",
+            Font.poppins(size=14),
+            color="white", max_width=40, align="right",
+        )
+        assert isinstance(editor, Editor)
+
+    def test_text_box_wrap_stroke(self) -> None:
+        """Tests text_box wrapping with stroke."""
+        editor = self.editor.text_box(
+            (10, 10),
+            "Hello World this is a very long text that should wrap multiple lines",
+            Font.poppins(size=14),
+            color="white", max_width=40,
+            stroke_width=1, stroke_fill="black",
+        )
+        assert isinstance(editor, Editor)
+
+    def test_rectangle_rounded(self) -> None:
+        """Tests rectangle with radius > 0."""
+        editor = self.editor.rectangle((10, 10), 50, 50, fill="red", radius=5)
+        assert isinstance(editor, Editor)
+
+    def test_bar_zero_percent(self) -> None:
+        """Tests bar with 0% (early return)."""
+        editor = self.editor.bar((10, 10), 80, 10, 0, color="white")
+        assert isinstance(editor, Editor)
+
+    def test_bar_invalid_percent(self) -> None:
+        """Tests bar with percentage out of range."""
+        with self.assertRaises(ValueError):
+            self.editor.bar((10, 10), 80, 10, 150, color="white")
+        with self.assertRaises(ValueError):
+            self.editor.bar((10, 10), 80, 10, -10, color="white")
+
+    def test_bar_rectangle_radius_zero(self) -> None:
+        """Tests bar with radius <= 0 (draw.rectangle path)."""
+        editor = self.editor.bar(
+            (10, 10), 80, 10, 50, color="white", radius=0,
+        )
+        assert isinstance(editor, Editor)
+
+    def test_ellipse_color_alias(self) -> None:
+        """Tests ellipse with color param alias."""
+        editor = self.editor.ellipse((50, 50), 80, 60, color="red")
+        assert isinstance(editor, Editor)
+
+    def test_show_mocked(self) -> None:
+        """Tests show method via mock."""
+        with patch.object(self.editor.image, "show"):
+            self.editor.show()
+
+    def test_centered_text_with_font_instance(self) -> None:
+        """Tests centered_text with Font instance."""
+        f = Font(fonts_path["poppins"]["regular"], size=20)
+        editor = self.editor.centered_text("Hi", font=f)
+        assert isinstance(editor, Editor)
 
 
 if __name__ == "__main__":

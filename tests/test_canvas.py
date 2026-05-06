@@ -15,6 +15,11 @@ class TestCanvas(unittest.TestCase):
         assert canvas.size == (100, 100)
         assert canvas2.size == (100, 100)
 
+    def test_canvas_no_size(self) -> None:
+        """Tests canvas ValueError when no size provided."""
+        with self.assertRaises(ValueError):
+            Canvas()
+
 
 if __name__ == "__main__":
     unittest.main()

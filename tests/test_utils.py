@@ -1,10 +1,14 @@
 """Tests for utils."""
 
+import asyncio
 import unittest
+from unittest.mock import patch
 
+import aiohttp
 from PIL import Image
 
 from easy_pil import AioEditor, Canvas, Editor, load_image, load_image_async
+from easy_pil.utils import run_in_executor
 
 _TEST_URL = "http://httpbin.org/image/png"
 
@@ -52,6 +56,28 @@ class TestUtils(unittest.IsolatedAsyncioTestCase):
         editor = await aio.execute()
 
         assert isinstance(editor, Editor)
+
+    async def test_load_image_async_no_session(self) -> None:
+        """Test load_image_async without existing session."""
+        try:
+            img = await load_image_async(_TEST_URL)
+        except OSError:
+            self.skipTest("network unavailable")
+        assert isinstance(img, Image.Image)
+
+    async def test_load_image_async_with_session(self) -> None:
+        """Test load_image_async with aiohttp session."""
+        try:
+            async with aiohttp.ClientSession() as session:
+                img = await load_image_async(_TEST_URL, session=session)
+        except OSError:
+            self.skipTest("network unavailable")
+        assert isinstance(img, Image.Image)
+
+    async def test_run_in_executor(self) -> None:
+        """Test run_in_executor utility."""
+        result = await run_in_executor(Image.new, mode="RGBA", size=(10, 10))
+        self.assertIsInstance(result, Image.Image)
 
 
 if __name__ == "__main__":

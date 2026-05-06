@@ -1,8 +1,9 @@
 """Tests for all effects."""
 
 import unittest
+from unittest.mock import patch
 
-from PIL import Image
+from PIL import Image as PilImage
 
 from easy_pil import Canvas, Editor, Font
 from easy_pil.effect import (
@@ -229,6 +230,156 @@ class TestEffects(unittest.TestCase):
         black = Editor(Canvas((32, 32), color="black"))
         black.effect(Glow(radius=5))
         self.assertEqual(black.image.size, (32, 32))
+
+    # --- color variant branches ---
+
+    def test_vignette_rgba_tuple(self) -> None:
+        self._apply(Vignette(color=(255, 0, 0, 128)))
+
+    def test_vignette_invalid_tuple(self) -> None:
+        self._apply(Vignette(color=(1, 2, 3, 4, 5)))
+
+    def test_vignette_int_color(self) -> None:
+        self._apply(Vignette(color=0xFF0000))
+
+    def test_color_overlay_rgba(self) -> None:
+        self._apply(ColorOverlay(color=(255, 0, 0, 128), alpha=0.5))
+
+    def test_color_overlay_int(self) -> None:
+        self._apply(ColorOverlay(color=0xFF0000, alpha=0.5))
+
+    def test_drop_shadow_int_color(self) -> None:
+        self._apply(DropShadow(color=0))
+
+    def test_drop_shadow_rgba(self) -> None:
+        self._apply(DropShadow(color=(0, 0, 0, 128)))
+
+    def test_drop_shadow_invalid_tuple(self) -> None:
+        self._apply(DropShadow(color=(1, 2, 3, 4, 5)))
+
+    def test_glow_tuple_color(self) -> None:
+        self._apply(Glow(color=(0, 255, 255)))
+
+    def test_glow_rgba_color(self) -> None:
+        self._apply(Glow(color=(0, 255, 255, 128)))
+
+    def test_glow_invalid_tuple(self) -> None:
+        self._apply(Glow(color=(1, 2, 3, 4, 5)))
+
+    def test_glow_int_color(self) -> None:
+        self._apply(Glow(color=0x00FFFF))
+
+    def test_gradient_int_colors(self) -> None:
+        self._apply(Gradient(colors=[0xFF0000, 0x0000FF]))
+
+    def test_gradient_tuple_colors(self) -> None:
+        self._apply(Gradient(colors=[(255, 0, 0), (0, 0, 255)]))
+
+    def test_duotone_string_colors(self) -> None:
+        self._apply(Duotone(dark_color="black", light_color="white"))
+
+    def test_duotone_int_colors(self) -> None:
+        self._apply(Duotone(dark_color=0x000000, light_color=0xFFFFFF))
+
+    def test_edge_glow_int_color(self) -> None:
+        self._apply(EdgeGlow(color=0x00FFFF))
+
+    def test_edge_glow_tuple_color(self) -> None:
+        self._apply(EdgeGlow(color=(0, 255, 255)))
+
+    # --- load() returns None defensive branches ---
+
+    def test_ripple_load_none(self) -> None:
+        img = Editor(Canvas((64, 64))).image
+        with patch.object(PilImage.Image, "load", return_value=None):
+            result = Ripple().apply(img)
+        self.assertIsInstance(result, PilImage.Image)
+
+    def test_sketch_load_none(self) -> None:
+        img = Editor(Canvas((64, 64))).image
+        with patch.object(PilImage.Image, "load", return_value=None):
+            result = Sketch().apply(img)
+        self.assertIsInstance(result, PilImage.Image)
+
+    def test_dither_load_none(self) -> None:
+        img = Editor(Canvas((64, 64))).image
+        with patch.object(PilImage.Image, "load", return_value=None):
+            result = Dither().apply(img)
+        self.assertIsInstance(result, PilImage.Image)
+
+    def test_vortex_load_none(self) -> None:
+        img = Editor(Canvas((64, 64))).image
+        with patch.object(PilImage.Image, "load", return_value=None):
+            result = Vortex().apply(img)
+        self.assertIsInstance(result, PilImage.Image)
+
+    def test_pixel_sort_load_none(self) -> None:
+        img = Editor(Canvas((64, 64))).image
+        with patch.object(PilImage.Image, "load", return_value=None):
+            result = PixelSort().apply(img)
+        self.assertIsInstance(result, PilImage.Image)
+
+    def test_vortex_high_strength(self) -> None:
+        """Vortex pushes pixels out of bounds (line 1185)."""
+        img = Editor(Canvas((16, 16))).image
+        result = Vortex(strength=8.0, radius=100).apply(img)
+        self.assertIsInstance(result, PilImage.Image)
+
+    def test_ripple_second_load_none(self) -> None:
+        """Ripple: out.load() returns None (line 771)."""
+        img = Editor(Canvas((64, 64))).image
+        calls: list[int] = []
+        orig = PilImage.Image.load
+        def _load(self_obj: object) -> object:
+            calls.append(1)
+            if len(calls) == 1:
+                return orig(self_obj)
+            return None
+        with patch.object(PilImage.Image, "load", _load):
+            result = Ripple().apply(img)
+        self.assertIsInstance(result, PilImage.Image)
+
+    def test_sketch_second_load_none(self) -> None:
+        """Sketch: o_p.load() returns None (line 996)."""
+        img = Editor(Canvas((64, 64))).image
+        calls: list[int] = []
+        orig = PilImage.Image.load
+        def _load(self_obj: object) -> object:
+            calls.append(1)
+            if len(calls) <= 2:
+                return orig(self_obj)
+            return None
+        with patch.object(PilImage.Image, "load", _load):
+            result = Sketch().apply(img)
+        self.assertIsInstance(result, PilImage.Image)
+
+    def test_dither_second_load_none(self) -> None:
+        """Dither: op.load() returns None (line 1107)."""
+        img = Editor(Canvas((64, 64))).image
+        calls: list[int] = []
+        orig = PilImage.Image.load
+        def _load(self_obj: object) -> object:
+            calls.append(1)
+            if len(calls) == 1:
+                return orig(self_obj)
+            return None
+        with patch.object(PilImage.Image, "load", _load):
+            result = Dither().apply(img)
+        self.assertIsInstance(result, PilImage.Image)
+
+    def test_vortex_second_load_none(self) -> None:
+        """Vortex: op.load() returns None (line 1172)."""
+        img = Editor(Canvas((64, 64))).image
+        calls: list[int] = []
+        orig = PilImage.Image.load
+        def _load(self_obj: object) -> object:
+            calls.append(1)
+            if len(calls) == 1:
+                return orig(self_obj)
+            return None
+        with patch.object(PilImage.Image, "load", _load):
+            result = Vortex().apply(img)
+        self.assertIsInstance(result, PilImage.Image)
 
 
 if __name__ == "__main__":
