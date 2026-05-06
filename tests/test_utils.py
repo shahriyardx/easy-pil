@@ -1,8 +1,6 @@
 """Tests for utils."""
 
-import asyncio
 import unittest
-from unittest.mock import patch
 
 import aiohttp
 from PIL import Image
