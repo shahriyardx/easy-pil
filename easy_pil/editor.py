@@ -939,7 +939,10 @@ class Editor:
 
         """
         buf = BytesIO()
-        self.image.save(buf, fmt)
+        image = self.image
+        if fmt.upper() in ("JPEG", "JPG"):
+            image = image.convert("RGB")
+        image.save(buf, fmt)
         buf.seek(0)
         return buf.read()
 
