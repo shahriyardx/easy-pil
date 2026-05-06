@@ -20,9 +20,7 @@ card_left_shape = [(0, 0), (0, 270), (330, 270), (260, 0)]
 background.polygon(card_left_shape, "#2C2F33")
 background.paste(profile, (40, 35))
 background.ellipse((40, 35), 200, 200, outline="white", stroke_width=3)
-background.text(
-    (600, 20), "WELCOME", font=poppins_big, color="white", align="center"
-)
+background.text((600, 20), "WELCOME", font=poppins_big, color="white", align="center")
 background.text(
     (600, 70),
     "Shahriyar#9770",

@@ -1,12 +1,13 @@
-from typing import Optional, Tuple
+"""Canvas module for creating blank images."""
 
 from PIL import Image
 
-from .types.common import Color
+Color = int | str | tuple[int, int, int] | tuple[int, int, int, int]
 
 
 class Canvas:
-    """Canvas class
+    """
+    Canvas class.
 
     Parameters
     ----------
@@ -23,19 +24,22 @@ class Canvas:
     ------
     ValueError
         When either ``size`` or ``width and height`` is not a provided
+
     """
 
     def __init__(
         self,
-        size: Optional[Tuple[int, int]] = None,
+        size: tuple[int, int] | None = None,
         width: int = 0,
         height: int = 0,
         color: Color = 0,
     ) -> None:
+        """Initialize Canvas."""
         if not (size or (width and height)):
-            raise ValueError("size, width, and height cannot all be None")
+            msg = "Provide either size or both width and height"
+            raise ValueError(msg)
 
-        elif not size:
+        if not size:
             size = (width, height)
 
         self.size = size

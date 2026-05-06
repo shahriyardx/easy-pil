@@ -1,7 +1,15 @@
-from collections import namedtuple
+from typing import NamedTuple
 
-__version__ = "0.4.0"
+__version__: str = "0.4.0"
 
-VersionInfo = namedtuple("VersionInfo", "major minor macro release")
 
-version_info = VersionInfo(*map(int, __version__.split(".")), release="stable")
+class VersionInfo(NamedTuple):
+    major: int
+    minor: int
+    macro: int
+    release: str
+
+
+version_info: VersionInfo = VersionInfo(
+    *map(int, __version__.split(".")), release="stable"
+)  # noqa: RUF048

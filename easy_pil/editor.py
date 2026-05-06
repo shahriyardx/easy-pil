@@ -1,64 +1,82 @@
+"""Editor module."""
+
 from __future__ import annotations
 
 from io import BytesIO
 from pathlib import Path
-from typing import List, Literal, Optional, Tuple, Union
+from typing import Any, Literal
 
-from PIL import Image as PilImage, ImageDraw, ImageFilter, ImageFont
+from PIL import Image as PilImage
+from PIL import ImageDraw, ImageFilter, ImageFont
 from PIL.Image import Image
 
-from .canvas import Canvas
+from .canvas import Canvas, Color
 from .font import Font
 from .text import Text
-from .types.common import Color
+
+MAX_PERCENTAGE = 100
 
 
 class Editor:
-    """Editor class. It does all the editing operations.
+    """
+    Editor class. It does all the editing operations.
 
     Parameters
     ----------
-    _image : Union[Image, str, Editor, Canvas]
+    source : Image | str | bytes | BytesIO | Editor | Canvas | Path
         Image or Canvas to edit.
+
     """
 
     def __init__(
-        self, _image: Union[Image, str, BytesIO, Editor, Canvas, Path]
+        self,
+        source: Image | str | bytes | BytesIO | Editor | Canvas | Path,
     ) -> None:
-        if isinstance(_image, (str, BytesIO, Path)):
-            self.image: Image = PilImage.open(_image)
-        elif isinstance(_image, (Canvas, Editor)):
-            self.image: Image = _image.image
-        elif isinstance(_image, Image):
-            self.image: Image = _image
-        else:
-            raise ValueError(
-                "Editor requires an Image, Path, "
-                "Editor or Canvas to start with"
-            )
+        """
+        Initialize Editor.
 
-        self.image = self.image.convert("RGBA")
+        Parameters
+        ----------
+        source : Image | str | bytes | BytesIO | Editor | Canvas | Path
+            Image or Canvas to edit.
+
+        """
+        if isinstance(source, bytes):
+            source = BytesIO(source)
+
+        if isinstance(source, (str, BytesIO, Path)):
+            image = PilImage.open(source)
+        elif isinstance(source, (Canvas, Editor)):
+            image = source.image
+        else:
+            image = source
+
+        self.image: Image = image.convert("RGBA")
 
     @property
     def image_bytes(self) -> BytesIO:
-        """Return image bytes
+        """
+        Return image bytes.
 
         Returns
         -------
         BytesIO
             Bytes from the image of Editor
+
         """
         _bytes = BytesIO()
         self.image.save(_bytes, "png")
 
-        _bytes.seek(0)
+        _ = _bytes.seek(0)
         return _bytes
 
-    def close(self):
+    def close(self) -> None:
+        """Close the image."""
         self.image.close()
 
-    def resize(self, size: Tuple[int, int], crop=False) -> Editor:
-        """Resize image
+    def resize(self, size: tuple[int, int], *, crop: bool = False) -> Editor:
+        """
+        Resize image.
 
         Parameters
         ----------
@@ -66,10 +84,10 @@ class Editor:
             New Size of image
         crop : bool, optional
             Crop the image to bypass distortion, by default False
+
         """
         if not crop:
-            self.image = self.image.resize(size, PilImage.LANCZOS)
-
+            self.image = self.image.resize(size, PilImage.Resampling.LANCZOS)
         else:
             width, height = self.image.size
             ideal_width, ideal_height = size
@@ -87,13 +105,15 @@ class Editor:
                 resize = (0, offset, width, height - offset)
 
             self.image = self.image.crop(resize).resize(
-                (ideal_width, ideal_height), PilImage.LANCZOS
+                (ideal_width, ideal_height),
+                PilImage.Resampling.LANCZOS,
             )
 
         return self
 
     def rounded_corners(self, radius: int = 10, offset: int = 2) -> Editor:
-        """Make image rounded corners
+        """
+        Make image rounded corners.
 
         Parameters
         ----------
@@ -101,20 +121,26 @@ class Editor:
             Radius of roundness, by default 10
         offset : int, optional
             Offset pixel while making rounded, by default 2
+
         """
         background = PilImage.new(
-            "RGBA", size=self.image.size, color=(255, 255, 255, 0)
+            "RGBA",
+            size=self.image.size,
+            color=(255, 255, 255, 0),
         )
         holder = PilImage.new(
-            "RGBA", size=self.image.size, color=(255, 255, 255, 0)
+            "RGBA",
+            size=self.image.size,
+            color=(255, 255, 255, 0),
         )
         mask = PilImage.new(
-            "RGBA", size=self.image.size, color=(255, 255, 255, 0)
+            "RGBA",
+            size=self.image.size,
+            color=(255, 255, 255, 0),
         )
         mask_draw = ImageDraw.Draw(mask)
         mask_draw.rounded_rectangle(
-            (offset, offset)
-            + (self.image.size[0] - offset, self.image.size[1] - offset),
+            (offset, offset, self.image.size[0] - offset, self.image.size[1] - offset),
             radius=radius,
             fill="black",
         )
@@ -128,19 +154,25 @@ class Editor:
         return self
 
     def circle_image(self) -> Editor:
-        """Make image circle"""
+        """Make image circle."""
         background = PilImage.new(
-            "RGBA", size=self.image.size, color=(255, 255, 255, 0)
+            "RGBA",
+            size=self.image.size,
+            color=(255, 255, 255, 0),
         )
         holder = PilImage.new(
-            "RGBA", size=self.image.size, color=(255, 255, 255, 0)
+            "RGBA",
+            size=self.image.size,
+            color=(255, 255, 255, 0),
         )
         mask = PilImage.new(
-            "RGBA", size=self.image.size, color=(255, 255, 255, 0)
+            "RGBA",
+            size=self.image.size,
+            color=(255, 255, 255, 0),
         )
         mask_draw = ImageDraw.Draw(mask)
         ellipse_size = tuple(i - 1 for i in self.image.size)
-        mask_draw.ellipse((0, 0) + ellipse_size, fill="black")
+        mask_draw.ellipse((0, 0, *ellipse_size), fill="black")
         holder.paste(self.image, (0, 0))
         self.image = PilImage.composite(holder, background, mask)
 
@@ -150,8 +182,9 @@ class Editor:
 
         return self
 
-    def rotate(self, deg: float = 0, expand: bool = False) -> Editor:
-        """Rotate image
+    def rotate(self, deg: float = 0, *, expand: bool = False) -> Editor:
+        """
+        Rotate image.
 
         Parameters
         ----------
@@ -159,14 +192,18 @@ class Editor:
             Degrees to rotate, by default 0
         expand : bool, optional
             Expand while rotating, by default False
+
         """
         self.image = self.image.rotate(deg, expand=expand)
         return self
 
     def blur(
-        self, mode: Literal["box", "gaussian"] = "gaussian", amount: float = 1
+        self,
+        mode: Literal["box", "gaussian"] = "gaussian",
+        amount: float = 1,
     ) -> Editor:
-        """Blur image
+        """
+        Blur image.
 
         Parameters
         ----------
@@ -174,23 +211,26 @@ class Editor:
             Blur mode, by default "gaussian"
         amount : float, optional
             Amount of blur, by default 1
+
         """
         if mode == "box":
             self.image = self.image.filter(ImageFilter.BoxBlur(radius=amount))
-        if mode == "gaussian":
+        elif mode == "gaussian":
             self.image = self.image.filter(
-                ImageFilter.GaussianBlur(radius=amount)
+                ImageFilter.GaussianBlur(radius=amount),
             )
 
         return self
 
     def blend(
         self,
-        image: Union[Image, Editor, Canvas],
+        image: Image | Editor | Canvas,
         alpha: float = 0.0,
+        *,
         on_top: bool = False,
     ) -> Editor:
-        """Blend image into editor image
+        """
+        Blend image into editor image.
 
         Parameters
         ----------
@@ -200,26 +240,27 @@ class Editor:
             Alpha amount, by default 0.0
         on_top : bool, optional
             Places image on top, by default False
-        """
-        if isinstance(image, Editor) or isinstance(image, Canvas):
-            image = image.image
 
-        if image.size != self.image.size:
-            image = Editor(image).resize(self.image.size, crop=True).image
+        """
+        pil_image = image.image if isinstance(image, (Editor, Canvas)) else image
+
+        if pil_image.size != self.image.size:
+            pil_image = Editor(pil_image).resize(self.image.size, crop=True).image
 
         if on_top:
-            self.image = PilImage.blend(self.image, image, alpha=alpha)
+            self.image = PilImage.blend(self.image, pil_image, alpha=alpha)
         else:
-            self.image = PilImage.blend(image, self.image, alpha=alpha)
+            self.image = PilImage.blend(pil_image, self.image, alpha=alpha)
 
         return self
 
     def paste(
         self,
-        image: Union[Image, Editor, Canvas],
-        position: Tuple[int, int],
+        image: Image | Editor | Canvas,
+        position: tuple[int, int],
     ) -> Editor:
-        """Paste image into editor
+        """
+        Paste image into editor.
 
         Parameters
         ----------
@@ -227,32 +268,35 @@ class Editor:
             Image to paste
         position : Tuple[int, int]
             Position to paste
+
         """
         blank = PilImage.new(
-            "RGBA", size=self.image.size, color=(255, 255, 255, 0)
+            "RGBA",
+            size=self.image.size,
+            color=(255, 255, 255, 0),
         )
 
-        if isinstance(image, Editor) or isinstance(image, Canvas):
-            image = image.image
+        pil_image = image.image if isinstance(image, (Editor, Canvas)) else image
 
-        blank.paste(image, position)
+        blank.paste(pil_image, position)
         self.image = PilImage.alpha_composite(self.image, blank)
 
         blank.close()
 
         return self
 
-    def text(
+    def text(  # noqa: PLR0913
         self,
-        position: Tuple[float, float],
+        position: tuple[float, float],
         text: str,
-        font: Optional[Union[ImageFont.FreeTypeFont, Font]] = None,
+        font: ImageFont.FreeTypeFont | Font | None = None,
         color: Color = "black",
         align: Literal["left", "center", "right"] = "left",
-        stroke_width: Optional[int] = None,
+        stroke_width: int | None = None,
         stroke_fill: Color = "black",
     ) -> Editor:
-        """Draw text into image
+        """
+        Draw text into image.
 
         Parameters
         ----------
@@ -272,6 +316,7 @@ class Editor:
         stroke_fill : Color, optional
             Color of the stroke, if any stroke is applied to the
             text. Defaults to "black"
+
         """
         if isinstance(font, Font):
             font = font.font
@@ -297,12 +342,14 @@ class Editor:
 
     def multi_text(
         self,
-        position: Tuple[float, float],
-        texts: List[Text],
+        position: tuple[float, float],
+        texts: list[Text],
+        *,
         space_separated: bool = True,
         align: Literal["left", "center", "right"] = "left",
     ) -> Editor:
-        """Draw multicolor text
+        """
+        Draw multicolor text.
 
         Parameters
         ----------
@@ -314,11 +361,9 @@ class Editor:
             Separate texts with space, by default True
         align : Literal["left", "center", "right"], optional
             Align texts, by default "left"
+
         """
         draw = ImageDraw.Draw(self.image)
-
-        if align == "left":
-            position = position
 
         if align == "right":
             total_width = 0
@@ -351,18 +396,19 @@ class Editor:
 
         return self
 
-    def rectangle(
+    def rectangle(  # noqa: PLR0913
         self,
-        position: Tuple[float, float],
+        position: tuple[float, float],
         width: float,
         height: float,
-        fill: Optional[Color] = None,
-        color: Optional[Color] = None,
-        outline: Optional[Color] = None,
-        stroke_width: float = 1,
+        fill: Color | None = None,
+        color: Color | None = None,
+        outline: Color | None = None,
+        stroke_width: int = 1,
         radius: int = 0,
     ) -> Editor:
-        """Draw rectangle into image
+        """
+        Draw rectangle into image.
 
         Parameters
         ----------
@@ -382,6 +428,7 @@ class Editor:
             Stroke width, by default 1
         radius : int, optional
             Radius of rectangle, by default 0
+
         """
         draw = ImageDraw.Draw(self.image)
 
@@ -393,14 +440,14 @@ class Editor:
 
         if radius <= 0:
             draw.rectangle(
-                position + (to_width, to_height),
+                (*position, to_width, to_height),
                 fill=fill,
                 outline=outline,
                 width=stroke_width,
             )
         else:
             draw.rounded_rectangle(
-                position + (to_width, to_height),
+                (*position, to_width, to_height),
                 radius=radius,
                 fill=fill,
                 outline=outline,
@@ -409,19 +456,20 @@ class Editor:
 
         return self
 
-    def bar(
+    def bar(  # noqa: PLR0913
         self,
-        position: Tuple[int, int],
-        max_width: Union[int, float],
-        height: Union[int, float],
+        position: tuple[int, int],
+        max_width: float,
+        height: float,
         percentage: int = 1,
-        fill: Optional[Color] = None,
-        color: Optional[Color] = None,
-        outline: Optional[Color] = None,
-        stroke_width: float = 1,
+        fill: Color | None = None,
+        color: Color | None = None,
+        outline: Color | None = None,
+        stroke_width: int = 1,
         radius: int = 0,
     ) -> Editor:
-        """Draw a progress bar
+        """
+        Draw a progress bar.
 
         Parameters
         ----------
@@ -443,6 +491,7 @@ class Editor:
             Stroke width, by default 1
         radius : int, optional
             Radius of the bar, by default 0
+
         """
         if percentage == 0:
             return self
@@ -452,26 +501,29 @@ class Editor:
 
         bg = PilImage.new("RGBA", (int(max_width), int(height)), (0, 0, 0, 0))
         main = PilImage.new(
-            "RGBA", (int(max_width), int(height)), (0, 0, 0, 0)
+            "RGBA",
+            (int(max_width), int(height)),
+            (0, 0, 0, 0),
         )
         mask = PilImage.new("L", (int(max_width), int(height)), 0)
         main_draw = ImageDraw.Draw(main)
 
-        if percentage > 100 or percentage < 0:
-            raise ValueError("Percentage must be between 1 and 100")
+        if percentage > MAX_PERCENTAGE or percentage < 0:
+            msg = "Percentage must be between 0 and 100"
+            raise ValueError(msg)
 
-        bar_width = int((max_width / 100) * percentage)
+        bar_width = int((max_width / MAX_PERCENTAGE) * percentage)
 
         if radius <= 0:
             main_draw.rectangle(
-                (0, 0) + (bar_width, height),
+                (0, 0, bar_width, height),
                 fill=fill,
                 outline=outline,
                 width=stroke_width,
             )
         else:
             main_draw.rounded_rectangle(
-                (0, 0) + (bar_width, height),
+                (0, 0, bar_width, height),
                 radius=radius,
                 fill=fill,
                 outline=outline,
@@ -480,7 +532,7 @@ class Editor:
 
         mask_draw = ImageDraw.Draw(mask)
         mask_draw.rounded_rectangle(
-            (0, 0) + (max_width, height),
+            (0, 0, max_width, height),
             radius=radius,
             fill=255,
             outline=255,
@@ -488,7 +540,7 @@ class Editor:
         )
 
         final = PilImage.composite(main, bg, mask)
-        self.paste(final, position)
+        _ = self.paste(final, position)
 
         main.close()
         final.close()
@@ -497,17 +549,18 @@ class Editor:
 
         return self
 
-    def rounded_bar(
+    def rounded_bar(  # noqa: PLR0913
         self,
-        position: Tuple[float, float],
-        width: Union[int, float],
-        height: Union[int, float],
+        position: tuple[float, float],
+        width: float,
+        height: float,
         percentage: float,
-        fill: Optional[Color] = None,
-        color: Optional[Color] = None,
-        stroke_width: float = 1,
+        fill: Color | None = None,
+        color: Color | None = None,
+        stroke_width: int = 1,
     ) -> Editor:
-        """Draw a rounded bar
+        """
+        Draw a rounded bar.
 
         Parameters
         ----------
@@ -525,6 +578,7 @@ class Editor:
             Alias of color, by default None
         stroke_width : float, optional
             Stroke width, by default 1
+
         """
         draw = ImageDraw.Draw(self.image)
 
@@ -535,7 +589,7 @@ class Editor:
         end = (percentage * 3.6) - 90
 
         draw.arc(
-            position + (position[0] + width, position[1] + height),
+            (*position, position[0] + width, position[1] + height),
             start,
             end,
             fill,
@@ -544,17 +598,18 @@ class Editor:
 
         return self
 
-    def ellipse(
+    def ellipse(  # noqa: PLR0913
         self,
-        position: Tuple[float, float],
+        position: tuple[float, float],
         width: float,
         height: float,
-        fill: Optional[Color] = None,
-        color: Optional[Color] = None,
-        outline: Optional[Color] = None,
-        stroke_width: float = 1,
+        fill: Color | None = None,
+        color: Color | None = None,
+        outline: Color | None = None,
+        stroke_width: int = 1,
     ) -> Editor:
-        """Draw an ellipse
+        """
+        Draw an ellipse.
 
         Parameters
         ----------
@@ -572,6 +627,7 @@ class Editor:
             Outline color, by default None
         stroke_width : float, optional
             Stroke width, by default 1
+
         """
         draw = ImageDraw.Draw(self.image)
         to_width = width + position[0]
@@ -581,7 +637,7 @@ class Editor:
             fill = color
 
         draw.ellipse(
-            position + (to_width, to_height),
+            (*position, to_width, to_height),
             outline=outline,
             fill=fill,
             width=stroke_width,
@@ -591,12 +647,13 @@ class Editor:
 
     def polygon(
         self,
-        coordinates: list,
-        fill: Optional[Color] = None,
-        color: Optional[Color] = None,
-        outline: Optional[Color] = None,
+        coordinates: list[tuple[int, int]],
+        fill: Color | None = None,
+        color: Color | None = None,
+        outline: Color | None = None,
     ) -> Editor:
-        """Draw a polygon
+        """
+        Draw a polygon.
 
         Parameters
         ----------
@@ -608,6 +665,7 @@ class Editor:
             Alias of fill, by default None
         outline : Color, optional
             Outline color, by default None
+
         """
         if color:
             fill = color
@@ -617,18 +675,19 @@ class Editor:
 
         return self
 
-    def arc(
+    def arc(  # noqa: PLR0913
         self,
-        position: Tuple[float, float],
+        position: tuple[float, float],
         width: float,
         height: float,
         start: float,
         rotation: float,
-        fill: Optional[Color] = None,
-        color: Optional[Color] = None,
-        stroke_width: float = 1,
+        fill: Color | None = None,
+        color: Color | None = None,
+        stroke_width: int = 1,
     ) -> Editor:
-        """Draw arc
+        """
+        Draw arc.
 
         Parameters
         ----------
@@ -648,6 +707,7 @@ class Editor:
             Alias of fill, by default None
         stroke_width : float, optional
             Stroke width, by default 1
+
         """
         draw = ImageDraw.Draw(self.image)
 
@@ -658,7 +718,7 @@ class Editor:
             fill = color
 
         draw.arc(
-            position + (position[0] + width, position[1] + height),
+            (*position, position[0] + width, position[1] + height),
             start,
             end,
             fill,
@@ -667,18 +727,27 @@ class Editor:
 
         return self
 
-    def show(self):
+    def show(self) -> None:
         """Show the image."""
         self.image.show()
 
-    def save(self, fp, file_format: Optional[str] = None, **params):
-        """Save the image
+    def save(
+        self,
+        fp: str | Path | BytesIO,
+        file_format: str | None = None,
+        **params: Any,
+    ) -> None:
+        """
+        Save the image.
 
         Parameters
         ----------
-        fp : str
-            File path
+        fp : str | Path | BytesIO
+            File path or buffer
         file_format : str, optional
             File format, by default None
+        **params : Any
+            Additional parameters for PIL Image.save
+
         """
         self.image.save(fp, file_format, **params)

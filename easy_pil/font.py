@@ -1,48 +1,39 @@
-import os
+"""Font module for loading and caching fonts."""
+
 from functools import lru_cache
+from pathlib import Path
+from typing import Any, Literal
 
 from PIL import ImageFont
-from typing_extensions import Literal
 
-fonts_directory = os.path.join(os.path.dirname(__file__), "fonts")
+fonts_directory = Path(__file__).parent / "fonts"
 
 
 fonts_path = {
     "caveat": {
-        "regular": os.path.join(fonts_directory, "caveat", "caveat.ttf"),
-        "bold": os.path.join(fonts_directory, "caveat", "caveat.ttf"),
-        "italic": os.path.join(fonts_directory, "caveat", "caveat.ttf"),
-        "light": os.path.join(fonts_directory, "caveat", "caveat.ttf"),
+        "regular": str(fonts_directory / "caveat" / "caveat.ttf"),
+        "bold": str(fonts_directory / "caveat" / "caveat.ttf"),
+        "italic": str(fonts_directory / "caveat" / "caveat.ttf"),
+        "light": str(fonts_directory / "caveat" / "caveat.ttf"),
     },
     "montserrat": {
-        "regular": os.path.join(
-            fonts_directory, "montserrat", "montserrat_regular.ttf"
-        ),
-        "bold": os.path.join(
-            fonts_directory, "montserrat", "montserrat_bold.ttf"
-        ),
-        "italic": os.path.join(
-            fonts_directory, "montserrat", "montserrat_italic.ttf"
-        ),
-        "light": os.path.join(
-            fonts_directory, "montserrat", "montserrat_light.ttf"
-        ),
+        "regular": str(fonts_directory / "montserrat" / "montserrat_regular.ttf"),
+        "bold": str(fonts_directory / "montserrat" / "montserrat_bold.ttf"),
+        "italic": str(fonts_directory / "montserrat" / "montserrat_italic.ttf"),
+        "light": str(fonts_directory / "montserrat" / "montserrat_light.ttf"),
     },
     "poppins": {
-        "regular": os.path.join(
-            fonts_directory, "poppins", "poppins_regular.ttf"
-        ),
-        "bold": os.path.join(fonts_directory, "poppins", "poppins_bold.ttf"),
-        "italic": os.path.join(
-            fonts_directory, "poppins", "poppins_italic.ttf"
-        ),
-        "light": os.path.join(fonts_directory, "poppins", "poppins_light.ttf"),
+        "regular": str(fonts_directory / "poppins" / "poppins_regular.ttf"),
+        "bold": str(fonts_directory / "poppins" / "poppins_bold.ttf"),
+        "italic": str(fonts_directory / "poppins" / "poppins_italic.ttf"),
+        "light": str(fonts_directory / "poppins" / "poppins_light.ttf"),
     },
 }
 
 
 class Font:
-    """Font class
+    """
+    Font class.
 
     Parameters
     ----------
@@ -50,12 +41,23 @@ class Font:
         Path of font
     size : int, optional
         Size of font, by default 10
+
     """
 
-    def __init__(self, path: str, size: int = 10, **kwargs) -> None:
+    def __init__(self, path: str, size: int = 10, **kwargs: Any) -> None:
+        """Initialize Font instance."""
         self.font = ImageFont.truetype(path, size=size, **kwargs)
 
-    def getsize(self, text: str):
+    def getsize(self, text: str) -> tuple[float, float]:
+        """
+        Get the width and height of the text.
+
+        Returns
+        -------
+        tuple[float, float]
+            Width and height of the text bounding box.
+
+        """
         bbox = self.font.getbbox(text)
         return bbox[2], bbox[3]
 
@@ -64,8 +66,9 @@ class Font:
     def poppins(
         variant: Literal["regular", "bold", "italic", "light"] = "regular",
         size: int = 10,
-    ):
-        """Poppins font
+    ) -> ImageFont.FreeTypeFont:
+        """
+        Poppins font.
 
         Parameters
         ----------
@@ -73,6 +76,7 @@ class Font:
             Font variant, by default "regular"
         size : int, optional
             Font size, by default 10
+
         """
         return ImageFont.truetype(fonts_path["poppins"][variant], size=size)
 
@@ -81,8 +85,9 @@ class Font:
     def caveat(
         variant: Literal["regular", "bold", "italic", "light"] = "regular",
         size: int = 10,
-    ):
-        """Caveat font
+    ) -> ImageFont.FreeTypeFont:
+        """
+        Caveat font.
 
         Parameters
         ----------
@@ -90,6 +95,7 @@ class Font:
             Font variant, by default "regular"
         size : int, optional
             Font size, by default 10
+
         """
         return ImageFont.truetype(fonts_path["caveat"][variant], size=size)
 
@@ -98,8 +104,9 @@ class Font:
     def montserrat(
         variant: Literal["regular", "bold", "italic", "light"] = "regular",
         size: int = 10,
-    ):
-        """Montserrat font
+    ) -> ImageFont.FreeTypeFont:
+        """
+        Montserrat font.
 
         Parameters
         ----------
@@ -107,5 +114,6 @@ class Font:
             Font variant, by default "regular"
         size : int, optional
             Font size, by default 10
+
         """
         return ImageFont.truetype(fonts_path["montserrat"][variant], size=size)

@@ -27,9 +27,7 @@ background.paste(profile, (20, 20))
 background.text((240, 20), user_data["name"], font=font_40, color="white")
 background.text((240, 80), user_data["bio"], font=font_20, color="white")
 background.text((250, 170), "LVL", font=font_25, color="white")
-background.text(
-    (310, 155), user_data["level"], font=font_40_bold, color="white"
-)
+background.text((310, 155), user_data["level"], font=font_40_bold, color="white")
 
 background.rectangle((390, 170), 360, 25, outline="white", stroke_width=2)
 background.bar(

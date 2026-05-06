@@ -1,3 +1,5 @@
+"""Easy PIL - Image editing made easy."""
+
 from ._version import __version__, version_info
 from .aio_editor import AioEditor
 from .canvas import Canvas
@@ -6,19 +8,17 @@ from .font import Font
 from .gif_editor import GifEditor
 from .text import Text
 from .utils import load_image, load_image_async, run_in_executor
-from .workspace import Workspace
 
 __all__ = [
-    "__version__",
-    "version_info",
+    "AioEditor",
     "Canvas",
     "Editor",
-    "GifEditor",
-    "AioEditor",
-    "Workspace",
     "Font",
+    "GifEditor",
     "Text",
+    "__version__",
     "load_image",
     "load_image_async",
     "run_in_executor",
+    "version_info",
 ]
