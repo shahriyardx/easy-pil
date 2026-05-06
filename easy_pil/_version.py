@@ -1,6 +1,6 @@
 from typing import NamedTuple
 
-__version__: str = "0.4.3"
+__version__: str = "0.4.4"
 
 
 class VersionInfo(NamedTuple):
