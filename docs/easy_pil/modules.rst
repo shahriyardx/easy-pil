@@ -7,6 +7,7 @@ The Python Image Library (PIL) is a Python library for image processing.
 
    easy_pil.canvas
    easy_pil.editor
+   easy_pil.effect
    easy_pil.gif_editor
    easy_pil.font
    easy_pil.text

@@ -7,10 +7,11 @@ from pathlib import Path
 from typing import Any, Literal
 
 from PIL import Image as PilImage
-from PIL import ImageDraw, ImageFilter, ImageFont
+from PIL import ImageDraw, ImageEnhance, ImageFilter, ImageFont, ImageOps
 from PIL.Image import Image
 
 from .canvas import Canvas, Color
+from .effect import Effect
 from .font import Font
 from .text import Text
 
@@ -338,7 +339,7 @@ class Editor:
 
         return self
 
-    def multi_text(
+    def rich_text(
         self,
         position: tuple[float, float],
         texts: list[Text],
@@ -347,7 +348,7 @@ class Editor:
         align: Literal["left", "center", "right"] = "left",
     ) -> Editor:
         """
-        Draw multicolor text.
+        Draw rich text with mixed colors and fonts inline.
 
         Parameters
         ----------
@@ -393,6 +394,162 @@ class Editor:
             position = (int(position[0] + width), int(position[1]))
 
         return self
+
+    def multi_text(
+        self,
+        position: tuple[float, float],
+        texts: list[Text],
+        *,
+        space_separated: bool = True,
+        align: Literal["left", "center", "right"] = "left",
+    ) -> Editor:
+        """Backward-compatible alias for :meth:`rich_text`."""
+        return self.rich_text(
+            position,
+            texts,
+            space_separated=space_separated,
+            align=align,
+        )
+
+    def text_box(  # noqa: PLR0913
+        self,
+        position: tuple[float, float],
+        text: str,
+        font: ImageFont.FreeTypeFont | Font,
+        *,
+        color: Color = "black",
+        align: Literal["left", "center", "right"] = "left",
+        max_width: float | None = None,
+        line_spacing: int = 4,
+        stroke_width: int | None = None,
+        stroke_fill: Color = "black",
+    ) -> Editor:
+        """
+        Draw text wrapped to fit inside a bounding box.
+
+        Parameters
+        ----------
+        position : Tuple[float, float]
+            Position to draw text (top-left).
+        text : str
+            Text to draw.
+        font : Union[ImageFont.FreeTypeFont, Font]
+            Font used for text.
+        color : Color, optional
+            Color of the font, by default "black"
+        align : Literal["left", "center", "right"], optional
+            Align text, by default "left"
+        max_width : float, optional
+            Max width before wrapping. Defaults to image width.
+        line_spacing : int, optional
+            Extra spacing between lines, by default 4
+        stroke_width : int, optional
+            Stroke width, by default None
+        stroke_fill : Color, optional
+            Stroke color, by default "black"
+
+        """
+        if isinstance(font, Font):
+            font = font.font
+
+        if max_width is None:
+            max_width = float(self.image.width)
+
+        draw = ImageDraw.Draw(self.image)
+        x, y = position
+        line = ""
+
+        for word in text.split():
+            test_line = f"{line} {word}".strip()
+            w = font.getlength(test_line)
+
+            if w > max_width and line:
+                if align == "center":
+                    cx = x + (max_width - font.getlength(line)) / 2
+                elif align == "right":
+                    cx = x + max_width - font.getlength(line)
+                else:
+                    cx = float(x)
+
+                if stroke_width:
+                    draw.text(
+                        (cx, y),
+                        line,
+                        color,
+                        font=font,
+                        stroke_width=stroke_width,
+                        stroke_fill=stroke_fill,
+                    )
+                else:
+                    draw.text((cx, y), line, color, font=font)
+                y += font.getbbox(line)[3] + line_spacing
+                line = word
+            else:
+                line = test_line
+
+        if line:
+            if align == "center":
+                cx = x + (max_width - font.getlength(line)) / 2
+            elif align == "right":
+                cx = x + max_width - font.getlength(line)
+            else:
+                cx = float(x)
+
+            if stroke_width:
+                draw.text(
+                    (cx, y),
+                    line,
+                    color,
+                    font=font,
+                    stroke_width=stroke_width,
+                    stroke_fill=stroke_fill,
+                )
+            else:
+                draw.text((cx, y), line, color, font=font)
+
+        return self
+
+    def text_shadow(  # noqa: PLR0913
+        self,
+        position: tuple[float, float],
+        text: str,
+        font: ImageFont.FreeTypeFont | Font | None = None,
+        *,
+        color: Color = "white",
+        shadow_color: Color = "black",
+        shadow_offset: tuple[int, int] = (2, 2),
+        align: Literal["left", "center", "right"] = "left",
+        stroke_width: int | None = None,
+        stroke_fill: Color = "black",
+    ) -> Editor:
+        """
+        Draw text with a drop shadow.
+
+        Parameters
+        ----------
+        position : Tuple[float, float]
+            Position to draw text.
+        text : str
+            Text to draw.
+        font : Union[ImageFont.FreeTypeFont, Font], optional
+            Font used for text, by default None
+        color : Color, optional
+            Text color, by default "white"
+        shadow_color : Color, optional
+            Shadow color, by default "black"
+        shadow_offset : Tuple[int, int], optional
+            Shadow offset (x, y), by default (2, 2)
+        align : Literal["left", "center", "right"], optional
+            Align text, by default "left"
+        stroke_width : int, optional
+            Stroke width, by default None
+        stroke_fill : Color, optional
+            Stroke color, by default "black"
+
+        """
+        shadow_pos = (position[0] + shadow_offset[0], position[1] + shadow_offset[1])
+        self.text(shadow_pos, text, font, color=shadow_color, align=align)
+        return self.text(position, text, font, color=color, align=align, stroke_width=stroke_width, stroke_fill=stroke_fill)
 
     def rectangle(  # noqa: PLR0913
         self,
@@ -749,3 +906,359 @@ class Editor:
 
         """
         self.image.save(fp, file_format, **params)
+
+    @classmethod
+    def open(cls, fp: str | Path | BytesIO) -> Editor:
+        """
+        Open image file as Editor.
+
+        Parameters
+        ----------
+        fp : str | Path | BytesIO
+            File path or buffer
+
+        """
+        return cls(fp)
+
+    def to_bytes(self, fmt: str = "PNG") -> bytes:
+        """
+        Return image as bytes.
+
+        Parameters
+        ----------
+        fmt : str, optional
+            Image format, by default "PNG"
+
+        """
+        buf = BytesIO()
+        self.image.save(buf, fmt)
+        buf.seek(0)
+        return buf.read()
+
+    def crop(self, box: tuple[int, int, int, int]) -> Editor:
+        """
+        Crop image to bounding box.
+
+        Parameters
+        ----------
+        box : tuple[int, int, int, int]
+            (left, upper, right, lower) pixel coordinates
+
+        """
+        self.image = self.image.crop(box)
+        return self
+
+    def thumbnail(self, size: tuple[int, int]) -> Editor:
+        """
+        Resize image to fit within size, maintaining aspect ratio.
+
+        Parameters
+        ----------
+        size : tuple[int, int]
+            Maximum (width, height)
+
+        """
+        self.image.thumbnail(size, PilImage.Resampling.LANCZOS)
+        return self
+
+    def flip(self, *, horizontal: bool = False) -> Editor:
+        """
+        Flip image.
+
+        Parameters
+        ----------
+        horizontal : bool, optional
+            Flip horizontally (mirror), by default False (vertical flip)
+
+        """
+        if horizontal:
+            self.image = self.image.transpose(PilImage.Transpose.FLIP_LEFT_RIGHT)
+        else:
+            self.image = self.image.transpose(PilImage.Transpose.FLIP_TOP_BOTTOM)
+        return self
+
+    def invert(self) -> Editor:
+        """Invert image colors."""
+        self.image = ImageOps.invert(self.image.convert("RGB")).convert("RGBA")
+        return self
+
+    def mask(self, mask_image: Image | Editor, invert: bool = False) -> Editor:
+        """
+        Apply external mask for transparency.
+
+        Parameters
+        ----------
+        mask_image : Union[Image, Editor]
+            Grayscale mask where white=opaque, black=transparent.
+        invert : bool, optional
+            Invert mask (white=transparent, black=opaque), by default False
+
+        """
+        if isinstance(mask_image, Editor):
+            mask_image = mask_image.image
+
+        mask_img = mask_image.convert("L").resize(self.image.size, PilImage.Resampling.LANCZOS)
+        if invert:
+            mask_img = ImageOps.invert(mask_img)
+
+        self.image.putalpha(mask_img)
+        return self
+
+    def contrast(self, factor: float = 1.0) -> Editor:
+        """
+        Adjust image contrast.
+
+        Parameters
+        ----------
+        factor : float, optional
+            Contrast factor. 1.0 = original, >1 = more contrast, <1 = less.
+
+        """
+        self.image = ImageEnhance.Contrast(self.image).enhance(factor)
+        return self
+
+    def brightness(self, factor: float = 1.0) -> Editor:
+        """
+        Adjust image brightness.
+
+        Parameters
+        ----------
+        factor : float, optional
+            Brightness factor. 1.0 = original, >1 = brighter, <1 = darker.
+
+        """
+        self.image = ImageEnhance.Brightness(self.image).enhance(factor)
+        return self
+
+    def saturation(self, factor: float = 1.0) -> Editor:
+        """
+        Adjust image color saturation.
+
+        Parameters
+        ----------
+        factor : float, optional
+            Saturation factor. 1.0 = original, >1 = more saturated, <1 = less.
+
+        """
+        self.image = ImageEnhance.Color(self.image).enhance(factor)
+        return self
+
+    def line(
+        self,
+        start: tuple[float, float],
+        end: tuple[float, float],
+        width: int = 1,
+        fill: Color = "black",
+    ) -> Editor:
+        """
+        Draw a line.
+
+        Parameters
+        ----------
+        start : tuple[float, float]
+            Start coordinates (x, y)
+        end : tuple[float, float]
+            End coordinates (x, y)
+        width : int, optional
+            Line width, by default 1
+        fill : Color, optional
+            Line color, by default "black"
+
+        """
+        draw = ImageDraw.Draw(self.image)
+        draw.line((*start, *end), fill=fill, width=width)
+        return self
+
+    def donut(
+        self,
+        position: tuple[float, float],
+        inner_radius: float,
+        outer_radius: float,
+        fill: Color = "black",
+    ) -> Editor:
+        """
+        Draw a donut (ring) shape.
+
+        Parameters
+        ----------
+        position : tuple[float, float]
+            Center coordinates (x, y)
+        inner_radius : float
+            Inner radius of ring
+        outer_radius : float
+            Outer radius of ring
+        fill : Color, optional
+            Fill color, by default "black"
+
+        """
+        draw = ImageDraw.Draw(self.image)
+        x, y = position
+        draw.ellipse(
+            (x - outer_radius, y - outer_radius, x + outer_radius, y + outer_radius),
+            fill=fill,
+        )
+        draw.ellipse(
+            (x - inner_radius, y - inner_radius, x + inner_radius, y + inner_radius),
+            fill=(0, 0, 0, 0),
+        )
+        return self
+
+    def add_border(
+        self,
+        width: int = 1,
+        color: Color = "black",
+    ) -> Editor:
+        """
+        Add a border around the image.
+
+        Parameters
+        ----------
+        width : int, optional
+            Border width in pixels, by default 1
+        color : Color, optional
+            Border color, by default "black"
+
+        """
+        new_size = (
+            self.image.width + width * 2,
+            self.image.height + width * 2,
+        )
+        bg = PilImage.new("RGBA", new_size, color)
+        bg.paste(self.image, (width, width))
+        self.image = bg
+        return self
+
+    def fit_text(
+        self,
+        text: str,
+        max_width: float,
+        font_path: str,
+        *,
+        max_size: int = 100,
+        min_size: int = 1,
+    ) -> ImageFont.FreeTypeFont:
+        """
+        Find the largest font size that fits text within max_width.
+
+        Parameters
+        ----------
+        text : str
+            Text to measure
+        max_width : float
+            Maximum allowed width in pixels
+        font_path : str
+            Path to font file
+        max_size : int, optional
+            Maximum font size to try, by default 100
+        min_size : int, optional
+            Minimum font size to try, by default 1
+
+        Returns
+        -------
+        ImageFont.FreeTypeFont
+            Font at the fitted size
+
+        """
+        font = ImageFont.truetype(font_path, size=min_size)
+        size = max_size
+        while size >= min_size:
+            font = ImageFont.truetype(font_path, size=size)
+            bbox = font.getbbox(text)
+            if bbox[2] <= max_width:
+                break
+            size -= 1
+
+        return font
+
+    def centered_text(
+        self,
+        text: str,
+        font: ImageFont.FreeTypeFont | Font | None = None,
+        color: Color = "black",
+        *,
+        y_offset: float = 0,
+    ) -> Editor:
+        """
+        Draw text centered horizontally on the image.
+
+        Parameters
+        ----------
+        text : str
+            Text to draw
+        font : ImageFont.FreeTypeFont | Font, optional
+            Font for text
+        color : Color, optional
+            Text color, by default "black"
+        y_offset : float, optional
+            Vertical offset from center, by default 0
+
+        """
+        if isinstance(font, Font):
+            font = font.font
+
+        draw = ImageDraw.Draw(self.image)
+        bbox = draw.textbbox((0, 0), text, font=font)
+        text_width = bbox[2] - bbox[0]
+        x = (self.image.width - text_width) / 2
+        y = (self.image.height - (bbox[3] - bbox[1])) / 2 + y_offset
+        draw.text((x, y), text, color, font=font)
+
+        return self
+
+    def compose(
+        self,
+        editors: list[Editor],
+        direction: Literal["horizontal", "vertical"] = "vertical",
+        align: Literal["start", "center", "end"] = "center",
+        spacing: int = 0,
+    ) -> Editor:
+        """
+        Combine multiple editors into one image.
+
+        Parameters
+        ----------
+        editors : list[Editor]
+            Editors to combine
+        direction : Literal["horizontal", "vertical"], optional
+            Layout direction, by default "vertical"
+        align : Literal["start", "center", "end"], optional
+            Alignment of items in the opposite axis, by default "center"
+        spacing : int, optional
+            Spacing between items in pixels, by default 0
+
+        """
+        images = [e.image for e in editors]
+
+        if direction == "vertical":
+            total_w = max(img.width for img in images)
+            total_h = sum(img.height for img in images) + spacing * (len(images) - 1)
+            canvas = PilImage.new("RGBA", (total_w, total_h), (0, 0, 0, 0))
+            y = 0
+            for img in images:
+                x = {0: 0, 1: (total_w - img.width) // 2, 2: total_w - img.width}[
+                    ["start", "center", "end"].index(align)
+                ]
+                canvas.paste(img, (x, y), img)
+                y += img.height + spacing
+        else:
+            total_w = sum(img.width for img in images) + spacing * (len(images) - 1)
+            total_h = max(img.height for img in images)
+            canvas = PilImage.new("RGBA", (total_w, total_h), (0, 0, 0, 0))
+            x = 0
+            for img in images:
+                y = {0: 0, 1: (total_h - img.height) // 2, 2: total_h - img.height}[
+                    ["start", "center", "end"].index(align)
+                ]
+                canvas.paste(img, (x, y), img)
+                x += img.width + spacing
+
+        self.image = canvas
+        return self
+
+    def effect(
+        self,
+        effect: Effect,
+    ) -> Editor:
+        """Apply effect to image. Accepts any Effect subclass instance."""
+        self.image = effect.apply(self.image)
+        return self
