@@ -28,6 +28,21 @@ class GifEditor:
         self.frames: list[Editor] = [Editor(x) for x in self.original_frames]
         self.size: tuple[int, int] = self.image.size
 
+    def __enter__(self) -> GifEditor:
+        """Context manager entry."""
+        return self
+
+    def __exit__(self, *args: object) -> None:
+        """Context manager exit — close frames and source."""
+        self.close()
+
+    def close(self) -> None:
+        """Close all frame editors and source image."""
+        for frame in self.frames:
+            frame.close()
+        self.image.close()
+        self.frames.clear()
+
     def __getattr__(self, name: str) -> Callable:
         """Apply method calls to all frames dynamically."""
 

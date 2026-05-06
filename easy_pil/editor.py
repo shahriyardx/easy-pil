@@ -45,12 +45,20 @@ class Editor:
 
         if isinstance(source, (str, BytesIO, Path)):
             image = PilImage.open(source)
+            self.image = image.convert("RGBA")
+            image.close()
         elif isinstance(source, (Canvas, Editor)):
-            image = source.image
+            self.image = source.image.convert("RGBA")
         else:
-            image = source
+            self.image = source.convert("RGBA")
 
-        self.image: Image = image.convert("RGBA")
+    def __enter__(self) -> Editor:
+        """Context manager entry."""
+        return self
+
+    def __exit__(self, *args: object) -> None:
+        """Context manager exit — close image."""
+        self.close()
 
     @property
     def image_bytes(self) -> BytesIO:
