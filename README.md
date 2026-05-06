@@ -86,15 +86,15 @@ editor.text_shadow((200, 300), "Hello", font=Font.poppins(size=40),
 font = editor.fit_text("Title", max_width=300, font_path="font.ttf")
 editor.text((10, 10), "Title", font=font)
 
-# Centered text
-editor.centered_text((300, 400), "Centered", font=Font.poppins(size=30), align="center")
+# Centered text (no position — auto-centers on image)
+editor.centered_text("Centered", font=Font.poppins(size=30))
 ```
 
 ## Drawing Shapes
 
 ```python
 editor.rectangle((10, 10), width=100, height=50, fill="red")
-editor.ellipse((150, 10), width=80, height=80, outline="blue", outline_width=3)
+editor.ellipse((150, 10), width=80, height=80, outline="blue", stroke_width=3)
 editor.bar((10, 70), width=200, height=20, color="green")
 editor.rounded_bar((10, 100), width=200, height=20, color="purple", radius=10)
 editor.polygon([(300, 10), (350, 50), (250, 50)], fill="orange")
@@ -127,7 +127,7 @@ editor.mask(mask_image, invert=False)
 editor.compose([img1, img2, img3], direction="vertical", align="center")
 editor.rounded_corners(radius=20)
 editor.circle_image()
-editor.add_border(thickness=5, color="black")
+editor.add_border(width=5, color="black")
 ```
 
 ## Image I/O
@@ -137,6 +137,10 @@ editor = Editor.open("image.png")
 editor.save("output.png")
 editor.show()
 editor.to_bytes(fmt="PNG")  # -> bytes
+
+# Context manager — auto-closes image on exit
+with Editor("image.png") as e:
+    e.resize((400, 400)).save("thumb.png")
 ```
 
 ## Async Support
@@ -152,10 +156,9 @@ img = await load_image_async("https://example.com/image.png")
 ```python
 from easy_pil import GifEditor
 
-gif = GifEditor("animation.gif")
-for frame in gif.frames:
-    frame.rotate(90)
-gif.save("rotated.gif")
+with GifEditor("animation.gif") as gif:
+    gif.rotate(90)
+    gif.save("rotated.gif")
 ```
 
 ## Documentation
