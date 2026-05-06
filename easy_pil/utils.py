@@ -1,7 +1,10 @@
+"""Utility functions for loading and processing images."""
+
 import asyncio
 import functools
+from collections.abc import Callable
 from io import BytesIO
-from typing import Optional, Union
+from typing import Any
 
 import aiohttp
 import requests
@@ -9,23 +12,19 @@ from PIL import Image
 from PIL.GifImagePlugin import GifImageFile
 
 
-async def run_in_executor(func, **kwargs):
-    """Run function in executor
-
-    Parameters
-    ----------
-    func : func
-        Function to run
-    """
+async def run_in_executor(func: Callable[..., Any], **kwargs: Any) -> Any:
+    """Run function in executor."""
     func = functools.partial(func, **kwargs)
-    data = await asyncio.get_event_loop().run_in_executor(None, func)
-    return data
+    return await asyncio.get_event_loop().run_in_executor(None, func)
 
 
 def load_image(
-    link: str, raw: bool = False
-) -> Union[Image.Image, GifImageFile]:
-    """Load image from link
+    link: str,
+    *,
+    raw: bool = False,
+) -> Image.Image | GifImageFile:
+    """
+    Load image from link.
 
     Parameters
     ----------
@@ -38,8 +37,9 @@ def load_image(
     -------
     PIL.Image.Image
         Image from the provided link (if any)
+
     """
-    _bytes = BytesIO(requests.get(link).content)
+    _bytes = BytesIO(requests.get(link, timeout=30).content)
     image = Image.open(_bytes)
     if not raw:
         image = image.convert("RGBA")
@@ -49,10 +49,12 @@ def load_image(
 
 async def load_image_async(
     link: str,
-    session: Optional[aiohttp.ClientSession] = None,
+    session: aiohttp.ClientSession | None = None,
+    *,
     raw: bool = False,
-) -> Union[Image.Image, GifImageFile]:
-    """Load image from link (async)
+) -> Image.Image | GifImageFile:
+    """
+    Load image from link (async).
 
     Parameters
     ----------
@@ -67,16 +69,18 @@ async def load_image_async(
     -------
     PIL.Image.Image
         Image link
+
     """
     if isinstance(session, aiohttp.ClientSession):
-        async with session.get(link) as response:  # type: ignore
-            data = await response.read()
+        async with session.get(link) as response:
+            _bytes = BytesIO(await response.read())
     else:
-        async with aiohttp.ClientSession() as session:
-            async with session.get(link) as response:
-                data = await response.read()
+        async with (
+            aiohttp.ClientSession() as new_session,
+            new_session.get(link) as response,
+        ):
+            _bytes = BytesIO(await response.read())
 
-    _bytes = BytesIO(data)
     image = Image.open(_bytes)
     if not raw:
         image = image.convert("RGBA")
