@@ -245,20 +245,32 @@ class TestEditor(unittest.TestCase):
 
     def test_fit_text(self) -> None:
         """Tests fit_text returns a font that fits."""
-        font_path = Font.poppins(size=20).path
-        font = self.editor.fit_text("Hello", max_width=80, font_path=font_path)
+        f = Font.poppins(size=20)
+        font = self.editor.fit_text("Hello", max_width=80, font=f)
         assert font is not None
 
     def test_fit_text_min_size(self) -> None:
         """Tests fit_text with min_size."""
-        font_path = Font.poppins(size=20).path
+        f = Font.poppins(size=20)
         font = self.editor.fit_text(
             "Very Long Text Here",
             max_width=30,
-            font_path=font_path,
+            font=f,
             max_size=20,
             min_size=5,
         )
+        assert font is not None
+
+    def test_fit_text_str_path(self) -> None:
+        """Tests fit_text with raw string path."""
+        path = Font.poppins(size=20).path
+        font = self.editor.fit_text("Hi", max_width=80, font=path)
+        assert font is not None
+
+    def test_fit_text_font_instance(self) -> None:
+        """Tests fit_text with Font instance."""
+        f = Font(fonts_path["poppins"]["regular"], size=20)
+        font = self.editor.fit_text("Hi", max_width=80, font=f)
         assert font is not None
 
     def test_circle(self) -> None:

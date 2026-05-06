@@ -1153,7 +1153,7 @@ class Editor:
         self,
         text: str,
         max_width: float,
-        font_path: str,
+        font: ImageFont.FreeTypeFont | Font | str,
         *,
         max_size: int = 100,
         min_size: int = 1,
@@ -1167,8 +1167,8 @@ class Editor:
             Text to measure
         max_width : float
             Maximum allowed width in pixels
-        font_path : str
-            Path to font file
+        font : ImageFont.FreeTypeFont | Font | str
+            Font object or path to font file
         max_size : int, optional
             Maximum font size to try, by default 100
         min_size : int, optional
@@ -1180,16 +1180,23 @@ class Editor:
             Font at the fitted size
 
         """
-        font = ImageFont.truetype(font_path, size=min_size)
+        if isinstance(font, Font):
+            font_path = font.font.path
+        elif isinstance(font, ImageFont.FreeTypeFont):
+            font_path = font.path
+        else:
+            font_path = font
+
+        ft_font = ImageFont.truetype(font_path, size=min_size)
         size = max_size
         while size >= min_size:
-            font = ImageFont.truetype(font_path, size=size)
-            bbox = font.getbbox(text)
+            ft_font = ImageFont.truetype(font_path, size=size)
+            bbox = ft_font.getbbox(text)
             if bbox[2] <= max_width:
                 break
             size -= 1
 
-        return font
+        return ft_font
 
     def centered_text(
         self,

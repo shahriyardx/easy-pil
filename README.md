@@ -82,8 +82,8 @@ editor.text_box((10, 100), "Long text that wraps automatically...",
 editor.text_shadow((200, 300), "Hello", font=Font.poppins(size=40),
                    shadow_color="black", shadow_offset=(3, 3))
 
-# Auto-fit text to width
-font = editor.fit_text("Title", max_width=300, font_path="font.ttf")
+# Auto-fit text to width (accepts Font, FreeTypeFont, or path string)
+font = editor.fit_text("Title", max_width=300, font=Font.poppins(size=40))
 editor.text((10, 10), "Title", font=font)
 
 # Centered text (no position — auto-centers on image)
