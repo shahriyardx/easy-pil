@@ -1096,6 +1096,8 @@ class Editor:
         inner_radius: float,
         outer_radius: float,
         fill: Color = "black",
+        outline: Color | None = None,
+        stroke_width: int = 0,
     ) -> Editor:
         """
         Draw a donut (ring) shape.
@@ -1110,18 +1112,26 @@ class Editor:
             Outer radius of ring
         fill : Color, optional
             Fill color, by default "black"
+        outline : Color | None, optional
+            Outline color, by default None
+        stroke_width : int, optional
+            Outline stroke width, by default 0
 
         """
-        draw = ImageDraw.Draw(self.image)
         x, y = position
+        layer = PilImage.new("RGBA", self.image.size, (0, 0, 0, 0))
+        draw = ImageDraw.Draw(layer)
         draw.ellipse(
             (x - outer_radius, y - outer_radius, x + outer_radius, y + outer_radius),
             fill=fill,
+            outline=outline,
+            width=stroke_width,
         )
         draw.ellipse(
             (x - inner_radius, y - inner_radius, x + inner_radius, y + inner_radius),
             fill=(0, 0, 0, 0),
         )
+        self.image = PilImage.alpha_composite(self.image, layer)
         return self
 
     def add_border(
