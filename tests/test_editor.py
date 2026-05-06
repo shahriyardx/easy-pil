@@ -71,22 +71,31 @@ class TestEditor(unittest.TestCase):
     def test_text_with_stroke(self) -> None:
         """Tests editor text with stroke."""
         editor = self.editor.text(
-            (50, 50), "Stroke", color="white",
-            stroke_width=2, stroke_fill="black",
+            (50, 50),
+            "Stroke",
+            color="white",
+            stroke_width=2,
+            stroke_fill="black",
         )
         assert isinstance(editor, Editor)
 
     def test_text_align_right(self) -> None:
         """Tests editor text right-aligned."""
         editor = self.editor.text(
-            (90, 50), "Right", color="white", align="right",
+            (90, 50),
+            "Right",
+            color="white",
+            align="right",
         )
         assert isinstance(editor, Editor)
 
     def test_text_align_center(self) -> None:
         """Tests editor text center-aligned."""
         editor = self.editor.text(
-            (50, 50), "Center", color="white", align="center",
+            (50, 50),
+            "Center",
+            color="white",
+            align="center",
         )
         assert isinstance(editor, Editor)
 
@@ -101,8 +110,10 @@ class TestEditor(unittest.TestCase):
         hello = Text("Hello ", color="white", font=Font.poppins(size=20))
         world = Text("World", color="red", font=Font.poppins(size=20))
         editor = self.editor.rich_text(
-            (0, 0), [hello, world],
-            space_separated=False, align="left",
+            (0, 0),
+            [hello, world],
+            space_separated=False,
+            align="left",
         )
         assert isinstance(editor, Editor)
 
@@ -138,31 +149,42 @@ class TestEditor(unittest.TestCase):
     def test_text_box_align_center(self) -> None:
         """Tests text_box centered."""
         editor = self.editor.text_box(
-            (50, 10), "A B C", Font.poppins(size=16),
-            max_width=80, align="center",
+            (50, 10),
+            "A B C",
+            Font.poppins(size=16),
+            max_width=80,
+            align="center",
         )
         assert isinstance(editor, Editor)
 
     def test_text_box_align_right(self) -> None:
         """Tests text_box right-aligned."""
         editor = self.editor.text_box(
-            (90, 10), "A B C", Font.poppins(size=16),
-            max_width=80, align="right",
+            (90, 10),
+            "A B C",
+            Font.poppins(size=16),
+            max_width=80,
+            align="right",
         )
         assert isinstance(editor, Editor)
 
     def test_text_box_stroke(self) -> None:
         """Tests text_box with stroke."""
         editor = self.editor.text_box(
-            (10, 10), "Text", Font.poppins(size=16),
-            stroke_width=1, stroke_fill="black",
+            (10, 10),
+            "Text",
+            Font.poppins(size=16),
+            stroke_width=1,
+            stroke_fill="black",
         )
         assert isinstance(editor, Editor)
 
     def test_text_box_no_max_width(self) -> None:
         """Tests text_box defaults to image width."""
         editor = self.editor.text_box(
-            (10, 10), "Short", Font.poppins(size=16),
+            (10, 10),
+            "Short",
+            Font.poppins(size=16),
         )
         assert isinstance(editor, Editor)
 
@@ -181,8 +203,11 @@ class TestEditor(unittest.TestCase):
     def test_text_shadow(self) -> None:
         """Tests text_shadow."""
         editor = self.editor.text_shadow(
-            (50, 50), "Shadow", Font.poppins(size=20),
-            color="white", shadow_color="black",
+            (50, 50),
+            "Shadow",
+            Font.poppins(size=20),
+            color="white",
+            shadow_color="black",
         )
         assert isinstance(editor, Editor)
 
@@ -194,7 +219,9 @@ class TestEditor(unittest.TestCase):
     def test_text_shadow_stroke(self) -> None:
         """Tests text_shadow with stroke."""
         editor = self.editor.text_shadow(
-            (50, 50), "Stroke", Font.poppins(size=20),
+            (50, 50),
+            "Stroke",
+            Font.poppins(size=20),
             stroke_width=1,
         )
         assert isinstance(editor, Editor)
@@ -202,14 +229,17 @@ class TestEditor(unittest.TestCase):
     def test_centered_text(self) -> None:
         """Tests centered_text."""
         editor = self.editor.centered_text(
-            "Center", Font.poppins(size=20),
+            "Center",
+            Font.poppins(size=20),
         )
         assert isinstance(editor, Editor)
 
     def test_centered_text_color(self) -> None:
         """Tests centered_text with color."""
         editor = self.editor.centered_text(
-            "Red", Font.poppins(size=20), color="red",
+            "Red",
+            Font.poppins(size=20),
+            color="red",
         )
         assert isinstance(editor, Editor)
 
@@ -223,8 +253,11 @@ class TestEditor(unittest.TestCase):
         """Tests fit_text with min_size."""
         font_path = Font.poppins(size=20).path
         font = self.editor.fit_text(
-            "Very Long Text Here", max_width=30,
-            font_path=font_path, max_size=20, min_size=5,
+            "Very Long Text Here",
+            max_width=30,
+            font_path=font_path,
+            max_size=20,
+            min_size=5,
         )
         assert font is not None
 
@@ -300,33 +333,51 @@ class TestEditor(unittest.TestCase):
     def test_ellipse_outline(self) -> None:
         """Tests editor ellipse with outline."""
         editor = self.editor.ellipse(
-            (50, 50), 80, 60, fill="red",
-            outline="white", stroke_width=3,
+            (50, 50),
+            80,
+            60,
+            fill="red",
+            outline="white",
+            stroke_width=3,
         )
         assert isinstance(editor, Editor)
 
     def test_bar(self) -> None:
         """Tests editor bar."""
         editor = self.editor.bar(
-            (10, 10), 80, 10, 50,
-            color="white", outline="black",
-            stroke_width=2, radius=5,
+            (10, 10),
+            80,
+            10,
+            50,
+            color="white",
+            outline="black",
+            stroke_width=2,
+            radius=5,
         )
         assert isinstance(editor, Editor)
 
     def test_rounded_bar(self) -> None:
         """Tests editor rounded bar."""
         editor = self.editor.rounded_bar(
-            (10, 10), 80, 80, 50,
-            color="white", stroke_width=2,
+            (10, 10),
+            80,
+            80,
+            50,
+            color="white",
+            stroke_width=2,
         )
         assert isinstance(editor, Editor)
 
     def test_arc(self) -> None:
         """Tests editor arc."""
         editor = self.editor.arc(
-            (10, 10), 80, 80, 0, 90,
-            color="white", stroke_width=2,
+            (10, 10),
+            80,
+            80,
+            0,
+            90,
+            color="white",
+            stroke_width=2,
         )
         assert isinstance(editor, Editor)
 
@@ -349,7 +400,10 @@ class TestEditor(unittest.TestCase):
     def test_donut(self) -> None:
         """Tests editor donut."""
         editor = self.editor.donut(
-            (50, 50), inner_radius=15, outer_radius=30, fill="teal",
+            (50, 50),
+            inner_radius=15,
+            outer_radius=30,
+            fill="teal",
         )
         assert isinstance(editor, Editor)
 
@@ -424,7 +478,8 @@ class TestEditor(unittest.TestCase):
         c2 = Canvas((50, 50), color="blue")
         editor = self.editor.compose(
             [Editor(c1), Editor(c2)],
-            direction="vertical", align="center",
+            direction="vertical",
+            align="center",
         )
         assert isinstance(editor, Editor)
 
@@ -434,7 +489,8 @@ class TestEditor(unittest.TestCase):
         c2 = Canvas((50, 50), color="blue")
         editor = self.editor.compose(
             [Editor(c1), Editor(c2)],
-            direction="horizontal", align="center",
+            direction="horizontal",
+            align="center",
         )
         assert isinstance(editor, Editor)
 
@@ -468,6 +524,7 @@ class TestEditor(unittest.TestCase):
     def test_save(self) -> None:
         """Tests editor save."""
         import tempfile
+
         with tempfile.NamedTemporaryFile(suffix=".png") as f:
             self.editor.save(f.name)
             saved = Image.open(f.name)
@@ -501,7 +558,9 @@ class TestEditor(unittest.TestCase):
             (10, 10),
             "Hello World this is a very long text that should wrap multiple lines",
             Font.poppins(size=14),
-            color="white", max_width=40, align="center",
+            color="white",
+            max_width=40,
+            align="center",
         )
         assert isinstance(editor, Editor)
 
@@ -511,7 +570,9 @@ class TestEditor(unittest.TestCase):
             (10, 10),
             "Hello World this is a very long text that should wrap multiple lines",
             Font.poppins(size=14),
-            color="white", max_width=40, align="right",
+            color="white",
+            max_width=40,
+            align="right",
         )
         assert isinstance(editor, Editor)
 
@@ -521,8 +582,10 @@ class TestEditor(unittest.TestCase):
             (10, 10),
             "Hello World this is a very long text that should wrap multiple lines",
             Font.poppins(size=14),
-            color="white", max_width=40,
-            stroke_width=1, stroke_fill="black",
+            color="white",
+            max_width=40,
+            stroke_width=1,
+            stroke_fill="black",
         )
         assert isinstance(editor, Editor)
 
@@ -546,7 +609,12 @@ class TestEditor(unittest.TestCase):
     def test_bar_rectangle_radius_zero(self) -> None:
         """Tests bar with radius <= 0 (draw.rectangle path)."""
         editor = self.editor.bar(
-            (10, 10), 80, 10, 50, color="white", radius=0,
+            (10, 10),
+            80,
+            10,
+            50,
+            color="white",
+            radius=0,
         )
         assert isinstance(editor, Editor)
 

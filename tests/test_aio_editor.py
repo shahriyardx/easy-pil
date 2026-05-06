@@ -20,6 +20,7 @@ class TestAioEditor(unittest.IsolatedAsyncioTestCase):
     async def test_execute_with_text(self) -> None:
         """Test execute with a queued instruction."""
         from easy_pil import Font
+
         self.aio.text((10, 10), "Hi", font=Font.poppins(size=20), color="white")
         editor = await self.aio.execute()
         self.assertIsInstance(editor, Editor)

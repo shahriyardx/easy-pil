@@ -330,11 +330,13 @@ class TestEffects(unittest.TestCase):
         img = Editor(Canvas((64, 64))).image
         calls: list[int] = []
         orig = PilImage.Image.load
+
         def _load(self_obj: object) -> object:
             calls.append(1)
             if len(calls) == 1:
                 return orig(self_obj)
             return None
+
         with patch.object(PilImage.Image, "load", _load):
             result = Ripple().apply(img)
         self.assertIsInstance(result, PilImage.Image)
@@ -344,11 +346,13 @@ class TestEffects(unittest.TestCase):
         img = Editor(Canvas((64, 64))).image
         calls: list[int] = []
         orig = PilImage.Image.load
+
         def _load(self_obj: object) -> object:
             calls.append(1)
             if len(calls) <= 2:
                 return orig(self_obj)
             return None
+
         with patch.object(PilImage.Image, "load", _load):
             result = Sketch().apply(img)
         self.assertIsInstance(result, PilImage.Image)
@@ -358,11 +362,13 @@ class TestEffects(unittest.TestCase):
         img = Editor(Canvas((64, 64))).image
         calls: list[int] = []
         orig = PilImage.Image.load
+
         def _load(self_obj: object) -> object:
             calls.append(1)
             if len(calls) == 1:
                 return orig(self_obj)
             return None
+
         with patch.object(PilImage.Image, "load", _load):
             result = Dither().apply(img)
         self.assertIsInstance(result, PilImage.Image)
@@ -372,11 +378,13 @@ class TestEffects(unittest.TestCase):
         img = Editor(Canvas((64, 64))).image
         calls: list[int] = []
         orig = PilImage.Image.load
+
         def _load(self_obj: object) -> object:
             calls.append(1)
             if len(calls) == 1:
                 return orig(self_obj)
             return None
+
         with patch.object(PilImage.Image, "load", _load):
             result = Vortex().apply(img)
         self.assertIsInstance(result, PilImage.Image)
