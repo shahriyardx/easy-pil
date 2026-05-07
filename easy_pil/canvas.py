@@ -2,6 +2,8 @@
 
 from PIL import Image
 
+from .gradient import Gradient
+
 Color = int | str | tuple[int, int, int] | tuple[int, int, int, int]
 
 
@@ -17,8 +19,8 @@ class Canvas:
         Width of image, by default None
     height : int, optional
         Height of image, by default None
-    color : Color, optional
-        Color of image, by default None
+    color : Color | Gradient, optional
+        Color or Gradient of image, by default None
 
     Raises
     ------
@@ -32,7 +34,7 @@ class Canvas:
         size: tuple[int, int] | None = None,
         width: int = 0,
         height: int = 0,
-        color: Color = 0,
+        color: Color | Gradient = 0,
     ) -> None:
         """Initialize Canvas."""
         if not (size or (width and height)):
@@ -45,4 +47,7 @@ class Canvas:
         self.size = size
         self.color = color
 
-        self.image = Image.new("RGBA", size, color=color)
+        if isinstance(color, Gradient):
+            self.image = color.render(*size)
+        else:
+            self.image = Image.new("RGBA", size, color=color)

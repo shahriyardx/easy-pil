@@ -50,4 +50,5 @@ background.text(
 )
 
 
+background.save(Path(__file__).parent / "outputs" / "owo_level.png")
 background.show()

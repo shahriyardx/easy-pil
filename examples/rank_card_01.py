@@ -51,4 +51,5 @@ background.text(
 )
 
 
+background.save(Path(__file__).parent / "outputs" / "rank_card_01.png")
 background.show()

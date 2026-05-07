@@ -44,4 +44,5 @@ background.text(
     align="center",
 )
 
+background.save(Path(__file__).parent / "outputs" / "welcome_image_02.png")
 background.show()

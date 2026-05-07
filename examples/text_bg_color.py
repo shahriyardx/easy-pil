@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from easy_pil import Canvas, Editor, Font
 
 bg = Editor(Canvas(width=300, height=200, color="white"))
@@ -16,4 +18,5 @@ bg.rectangle((10, 50), text_2_x + 8, text_2_y + 5, "black")
 bg.text((15, 18), text_1, font_1, "white")
 bg.text((15, 60), text_2, font_2, "red")
 
+bg.save(Path(__file__).parent / "outputs" / "text_bg_color.png")
 bg.show()

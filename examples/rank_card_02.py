@@ -57,4 +57,5 @@ rank_level_texts = [
 background.multi_text((850, 30), texts=rank_level_texts, align="right")
 
 
+background.save(Path(__file__).parent / "outputs" / "rank_card_02.png")
 background.show()

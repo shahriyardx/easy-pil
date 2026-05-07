@@ -60,4 +60,5 @@ rank_desc = Text("Rank", color="#8888aa", font=poppins_small)
 rank_val = Text(f" {user_data['rank']}", color="#fdcb6e", font=poppins)
 bg.multi_text((270, 135), texts=[rank_desc, rank_val])
 
+bg.save(Path(__file__).parent / "outputs" / "rank_card_03.png")
 bg.show()
