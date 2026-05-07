@@ -2,6 +2,7 @@
 .vscode
 local_test.py
 main.py
+outputs/
 ignored/
 /tests/dev
 # Byte-compiled / optimized / DLL files

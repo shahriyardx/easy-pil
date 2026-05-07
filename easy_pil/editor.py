@@ -13,6 +13,7 @@ from PIL.Image import Image
 from .canvas import Canvas, Color
 from .effect import Effect
 from .font import Font
+from .gradient import Gradient
 from .text import Text
 
 
@@ -572,8 +573,8 @@ class Editor:
         position: tuple[float, float],
         width: float,
         height: float,
-        fill: Color | None = None,
-        color: Color | None = None,
+        fill: Color | Gradient | None = None,
+        color: Color | Gradient | None = None,
         outline: Color | None = None,
         stroke_width: int = 1,
         radius: int = 0,
@@ -589,9 +590,9 @@ class Editor:
             Width of rectangle
         height : float
             Height of rectangle
-        fill : Color, optional
-            Fill color, by default None
-        color : Color, optional
+        fill : Color or Gradient, optional
+            Fill color or gradient, by default None
+        color : Color or Gradient, optional
             Alias of fill, by default None
         outline : Color, optional
             Outline color, by default None
@@ -601,13 +602,50 @@ class Editor:
             Radius of rectangle, by default 0
 
         """
+        if color:
+            fill = color
+
+        if isinstance(fill, Gradient):
+            x, y = position
+            x2 = width + x
+            y2 = height + y
+            if outline:
+                draw = ImageDraw.Draw(self.image)
+                if radius <= 0:
+                    draw.rectangle((x, y, x2, y2), outline=outline, width=stroke_width)
+                else:
+                    draw.rounded_rectangle(
+                        (x, y, x2, y2),
+                        radius=radius,
+                        outline=outline,
+                        width=stroke_width,
+                    )
+            if radius <= 0:
+                self._apply_gradient_fill(
+                    x,
+                    y,
+                    x2,
+                    y2,
+                    fill,
+                    lambda d, w, h: d.rectangle((0, 0, w, h), fill=255),
+                )
+            else:
+                self._apply_gradient_fill(
+                    x,
+                    y,
+                    x2,
+                    y2,
+                    fill,
+                    lambda d, w, h: d.rounded_rectangle(
+                        (0, 0, w, h), radius=radius, fill=255
+                    ),
+                )
+            return self
+
         draw = ImageDraw.Draw(self.image)
 
         to_width = width + position[0]
         to_height = height + position[1]
-
-        if color:
-            fill = color
 
         if radius <= 0:
             draw.rectangle(
@@ -633,8 +671,8 @@ class Editor:
         max_width: float,
         height: float,
         percentage: int = 1,
-        fill: Color | None = None,
-        color: Color | None = None,
+        fill: Color | Gradient | None = None,
+        color: Color | Gradient | None = None,
         outline: Color | None = None,
         stroke_width: int = 1,
         radius: int = 0,
@@ -652,9 +690,9 @@ class Editor:
             Height of the bar
         percentage : int, optional
             Percentage to fill of the bar, by default 1
-        fill : Color, optional
-            Fill color, by default None
-        color : Color, optional
+        fill : Color or Gradient, optional
+            Fill color or gradient, by default None
+        color : Color or Gradient, optional
             Alias of fill, by default None
         outline : Color, optional
             Outline color, by default None
@@ -670,40 +708,57 @@ class Editor:
         if color:
             fill = color
 
-        bg = PilImage.new("RGBA", (int(max_width), int(height)), (0, 0, 0, 0))
-        main = PilImage.new(
-            "RGBA",
-            (int(max_width), int(height)),
-            (0, 0, 0, 0),
-        )
-        mask = PilImage.new("L", (int(max_width), int(height)), 0)
-        main_draw = ImageDraw.Draw(main)
-
         if percentage > 100 or percentage < 0:
             msg = "Percentage must be between 0 and 100"
             raise ValueError(msg)
 
+        bw = int(max_width)
+        bh = int(height)
         bar_width = int((max_width / 100) * percentage)
 
-        if radius <= 0:
-            main_draw.rectangle(
-                (0, 0, bar_width, height),
-                fill=fill,
-                outline=outline,
-                width=stroke_width,
-            )
-        else:
-            main_draw.rounded_rectangle(
-                (0, 0, bar_width, height),
-                radius=radius,
-                fill=fill,
-                outline=outline,
-                width=stroke_width,
-            )
+        bg = PilImage.new("RGBA", (bw, bh), (0, 0, 0, 0))
+        main = PilImage.new("RGBA", (bw, bh), (0, 0, 0, 0))
 
+        if isinstance(fill, Gradient):
+            grad_img = fill.render(bar_width, bh)
+            main.paste(grad_img, (0, 0))
+            if outline:
+                main_draw = ImageDraw.Draw(main)
+                if radius <= 0:
+                    main_draw.rectangle(
+                        (0, 0, bar_width, bh),
+                        outline=outline,
+                        width=stroke_width,
+                    )
+                else:
+                    main_draw.rounded_rectangle(
+                        (0, 0, bar_width, bh),
+                        radius=radius,
+                        outline=outline,
+                        width=stroke_width,
+                    )
+        else:
+            main_draw = ImageDraw.Draw(main)
+            if radius <= 0:
+                main_draw.rectangle(
+                    (0, 0, bar_width, bh),
+                    fill=fill,
+                    outline=outline,
+                    width=stroke_width,
+                )
+            else:
+                main_draw.rounded_rectangle(
+                    (0, 0, bar_width, bh),
+                    radius=radius,
+                    fill=fill,
+                    outline=outline,
+                    width=stroke_width,
+                )
+
+        mask = PilImage.new("L", (bw, bh), 0)
         mask_draw = ImageDraw.Draw(mask)
         mask_draw.rounded_rectangle(
-            (0, 0, max_width, height),
+            (0, 0, bw, bh),
             radius=radius,
             fill=255,
             outline=255,
@@ -726,8 +781,8 @@ class Editor:
         width: float,
         height: float,
         percentage: float,
-        fill: Color | None = None,
-        color: Color | None = None,
+        fill: Color | Gradient | None = None,
+        color: Color | Gradient | None = None,
         stroke_width: int = 1,
     ) -> Editor:
         """
@@ -743,39 +798,34 @@ class Editor:
             Height of the bar
         percentage : float
             Percentage to fill.
-        fill : Color, optional
-            Fill color, by default None
-        color : Color, optional
+        fill : Color or Gradient, optional
+            Fill color or gradient, by default None
+        color : Color or Gradient, optional
             Alias of color, by default None
         stroke_width : float, optional
             Stroke width, by default 1
 
         """
-        draw = ImageDraw.Draw(self.image)
-
         if color:
             fill = color
 
-        start = -90
-        end = (percentage * 3.6) - 90
-
-        draw.arc(
-            (*position, position[0] + width, position[1] + height),
-            start,
-            end,
-            fill,
-            width=stroke_width,
+        return self.bar(
+            (int(position[0]), int(position[1])),
+            width,
+            height,
+            percentage=int(percentage),
+            fill=fill,
+            stroke_width=stroke_width,
+            radius=int(height // 2),
         )
-
-        return self
 
     def ellipse(  # noqa: PLR0913
         self,
         position: tuple[float, float],
         width: float,
         height: float,
-        fill: Color | None = None,
-        color: Color | None = None,
+        fill: Color | Gradient | None = None,
+        color: Color | Gradient | None = None,
         outline: Color | None = None,
         stroke_width: int = 1,
     ) -> Editor:
@@ -790,9 +840,9 @@ class Editor:
             Width of ellipse
         height : float
             Height of ellipse
-        fill : Color, optional
-            Fill color, by default None
-        color : Color, optional
+        fill : Color or Gradient, optional
+            Fill color or gradient, by default None
+        color : Color or Gradient, optional
             Alias of fill, by default None
         outline : Color, optional
             Outline color, by default None
@@ -800,12 +850,29 @@ class Editor:
             Stroke width, by default 1
 
         """
+        if color:
+            fill = color
+
+        if isinstance(fill, Gradient):
+            x, y = position
+            x2 = width + x
+            y2 = height + y
+            if outline:
+                draw = ImageDraw.Draw(self.image)
+                draw.ellipse((x, y, x2, y2), outline=outline, width=stroke_width)
+            self._apply_gradient_fill(
+                x,
+                y,
+                x2,
+                y2,
+                fill,
+                lambda d, w, h: d.ellipse((0, 0, w, h), fill=255),
+            )
+            return self
+
         draw = ImageDraw.Draw(self.image)
         to_width = width + position[0]
         to_height = height + position[1]
-
-        if color:
-            fill = color
 
         draw.ellipse(
             (*position, to_width, to_height),
@@ -819,8 +886,8 @@ class Editor:
     def polygon(
         self,
         coordinates: list[tuple[int, int]],
-        fill: Color | None = None,
-        color: Color | None = None,
+        fill: Color | Gradient | None = None,
+        color: Color | Gradient | None = None,
         outline: Color | None = None,
     ) -> Editor:
         """
@@ -830,9 +897,9 @@ class Editor:
         ----------
         coordinates : list
             Coordinates to draw
-        fill : Color, optional
-            Fill color, by default None
-        color : Color, optional
+        fill : Color or Gradient, optional
+            Fill color or gradient, by default None
+        color : Color or Gradient, optional
             Alias of fill, by default None
         outline : Color, optional
             Outline color, by default None
@@ -840,6 +907,25 @@ class Editor:
         """
         if color:
             fill = color
+
+        if isinstance(fill, Gradient):
+            xs = [c[0] for c in coordinates]
+            ys = [c[1] for c in coordinates]
+            x1, y1 = min(xs), min(ys)
+            x2, y2 = max(xs), max(ys)
+            if outline:
+                draw = ImageDraw.Draw(self.image)
+                draw.polygon(coordinates, outline=outline)
+            offset_coords = [(c[0] - x1, c[1] - y1) for c in coordinates]
+            self._apply_gradient_fill(
+                x1,
+                y1,
+                x2,
+                y2,
+                fill,
+                lambda d, w, h: d.polygon(offset_coords, fill=255),
+            )
+            return self
 
         draw = ImageDraw.Draw(self.image)
         draw.polygon(coordinates, fill=fill, outline=outline)
@@ -853,8 +939,8 @@ class Editor:
         height: float,
         start: float,
         rotation: float,
-        fill: Color | None = None,
-        color: Color | None = None,
+        fill: Color | Gradient | None = None,
+        color: Color | Gradient | None = None,
         stroke_width: int = 1,
     ) -> Editor:
         """
@@ -872,26 +958,41 @@ class Editor:
             Start position of arch
         rotation : float
             Rotation in degree
-        fill : Color, optional
-            Fill color, by default None
-        color : Color, optional
+        fill : Color or Gradient, optional
+            Fill color or gradient, by default None
+        color : Color or Gradient, optional
             Alias of fill, by default None
         stroke_width : float, optional
             Stroke width, by default 1
 
         """
-        draw = ImageDraw.Draw(self.image)
-
-        start = start - 90
-        end = rotation - 90
-
         if color:
             fill = color
 
+        start_angle = start - 90
+        end_angle = rotation - 90
+
+        if isinstance(fill, Gradient):
+            x, y = position
+            x2 = x + width
+            y2 = y + height
+            w = int(x2 - x)
+            h = int(y2 - y)
+            mask = PilImage.new("L", (w, h), 0)
+            mask_draw = ImageDraw.Draw(mask)
+            mask_draw.arc(
+                (0, 0, w, h), start_angle, end_angle, fill=255, width=stroke_width
+            )
+            grad_img = fill.render(w, h)
+            self.image.paste(grad_img, (int(x), int(y)), mask)
+            return self
+
+        draw = ImageDraw.Draw(self.image)
+
         draw.arc(
             (*position, position[0] + width, position[1] + height),
-            start,
-            end,
+            start_angle,
+            end_angle,
             fill,
             width=stroke_width,
         )
@@ -1095,7 +1196,7 @@ class Editor:
         position: tuple[float, float],
         inner_radius: float,
         outer_radius: float,
-        fill: Color = "black",
+        fill: Color | Gradient = "black",
         outline: Color | None = None,
         stroke_width: int = 0,
     ) -> Editor:
@@ -1110,8 +1211,8 @@ class Editor:
             Inner radius of ring
         outer_radius : float
             Outer radius of ring
-        fill : Color, optional
-            Fill color, by default "black"
+        fill : Color or Gradient, optional
+            Fill color or gradient, by default "black"
         outline : Color | None, optional
             Outline color, by default None
         stroke_width : int, optional
@@ -1119,10 +1220,36 @@ class Editor:
 
         """
         x, y = position
+        x1, y1 = x - outer_radius, y - outer_radius
+        x2, y2 = x + outer_radius, y + outer_radius
+
+        if isinstance(fill, Gradient):
+            w = int(x2 - x1)
+            h = int(y2 - y1)
+            ir = int(inner_radius)
+            mask = PilImage.new("L", (w, h), 0)
+            mask_draw = ImageDraw.Draw(mask)
+            mask_draw.ellipse((0, 0, w, h), fill=255)
+            cx, cy = w // 2, h // 2
+            mask_draw.ellipse(
+                (cx - ir, cy - ir, cx + ir, cy + ir),
+                fill=0,
+            )
+            if outline:
+                draw = ImageDraw.Draw(self.image)
+                draw.ellipse(
+                    (x1, y1, x2, y2),
+                    outline=outline,
+                    width=stroke_width,
+                )
+            grad_img = fill.render(w, h)
+            self.image.paste(grad_img, (int(x1), int(y1)), mask)
+            return self
+
         layer = PilImage.new("RGBA", self.image.size, (0, 0, 0, 0))
         draw = ImageDraw.Draw(layer)
         draw.ellipse(
-            (x - outer_radius, y - outer_radius, x + outer_radius, y + outer_radius),
+            (x1, y1, x2, y2),
             fill=fill,
             outline=outline,
             width=stroke_width,
@@ -1300,3 +1427,23 @@ class Editor:
         """Apply effect to image. Accepts any Effect subclass instance."""
         self.image = effect.apply(self.image)
         return self
+
+    def _apply_gradient_fill(
+        self,
+        x1: float,
+        y1: float,
+        x2: float,
+        y2: float,
+        gradient: Gradient,
+        draw_mask,
+    ) -> None:
+        """Render gradient clipped to shape mask, composite onto image."""
+        w = int(x2 - x1)
+        h = int(y2 - y1)
+        if w <= 0 or h <= 0:
+            return
+        mask = PilImage.new("L", (w, h), 0)
+        mask_draw = ImageDraw.Draw(mask)
+        draw_mask(mask_draw, w, h)
+        grad_img = gradient.render(w, h)
+        self.image.paste(grad_img, (int(x1), int(y1)), mask)

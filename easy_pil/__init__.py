@@ -47,6 +47,7 @@ from .effect import (
 )
 from .font import Font
 from .gif_editor import GifEditor
+from .gradient import LinearGradient, RadialGradient
 from .text import Text
 from .utils import load_image, load_image_async, run_in_executor
 
@@ -76,6 +77,7 @@ __all__ = [
     "Halftone",
     "Invert",
     "Kaleidoscope",
+    "LinearGradient",
     "Neon",
     "Noise",
     "OilPaint",
@@ -83,6 +85,7 @@ __all__ = [
     "PixelateRegion",
     "PixelSort",
     "Posterize",
+    "RadialGradient",
     "Ripple",
     "Scanlines",
     "Sepia",
