@@ -76,7 +76,9 @@ class LinearGradient(Gradient):
     def render(self, width: int, height: int) -> PilImage.Image:
         img = PilImage.new("RGBA", (width, height))
         pixels = img.load()
-        assert pixels is not None
+        if pixels is None:  # pragma: no cover
+            msg = "Pixel access failed"
+            raise RuntimeError(msg)
         wm = max(width - 1, 1)
         hm = max(height - 1, 1)
 
@@ -136,7 +138,9 @@ class RadialGradient(Gradient):
         )
 
         pixels = img.load()
-        assert pixels is not None
+        if pixels is None:  # pragma: no cover
+            msg = "Pixel access failed"
+            raise RuntimeError(msg)
         for y in range(height):
             dy2 = (y - cy) ** 2
             for x in range(width):

@@ -7,6 +7,7 @@ from abc import ABC, abstractmethod
 
 from PIL import Image as PilImage
 from PIL import ImageDraw, ImageFilter, ImageOps, ImageStat
+from PIL.ImageColor import getrgb
 
 from .canvas import Color
 
@@ -379,7 +380,6 @@ class Noise(Effect):
             g = PilImage.effect_noise((w, h), sigma).convert("L")
             b = PilImage.effect_noise((w, h), sigma).convert("L")
             noise = PilImage.merge("RGB", (r, g, b))
-            noise = PilImage.merge("RGB", (r, g, b))
 
         noise = noise.convert("RGBA")
         return PilImage.blend(image.convert("RGBA"), noise, self.intensity)
@@ -538,7 +538,7 @@ class Duotone(Effect):
 
     def _parse(self, color: Color) -> tuple[int, int, int]:
         if isinstance(color, str):
-            return (0, 0, 0)
+            return getrgb(color)
         if isinstance(color, int):
             return ((color >> 16) & 0xFF, (color >> 8) & 0xFF, color & 0xFF)
         return tuple(color[:3])  # type: ignore[arg-type]
@@ -1211,7 +1211,7 @@ class Neon(Effect):
         edges = grey.filter(ImageFilter.FIND_EDGES)
 
         white: str | tuple[int, ...] = (
-            self.color if isinstance(self.color, (str, tuple)) else (0, 255, 255)
+            self.color if isinstance(self.color, (str, tuple, int)) else (0, 255, 255)
         )  # type: ignore[assignment]
         colored = ImageOps.colorize(edges, black=(0, 0, 0), white=white).convert("RGBA")
         colored.putalpha(edges)

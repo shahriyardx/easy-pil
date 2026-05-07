@@ -95,11 +95,11 @@ editor.centered_text("Centered", font=Font.poppins(size=30))
 ```python
 editor.rectangle((10, 10), width=100, height=50, fill="red")
 editor.ellipse((150, 10), width=80, height=80, outline="blue", stroke_width=3)
-editor.bar((10, 70), width=200, height=20, color="green")
-editor.rounded_bar((10, 100), width=200, height=20, color="purple", radius=10)
+editor.bar((10, 70), width=200, height=20, fill="green")
+editor.rounded_bar((10, 100), width=200, height=20, fill="purple", radius=10)
 editor.polygon([(300, 10), (350, 50), (250, 50)], fill="orange")
-editor.arc((10, 150), width=100, height=100, start=0, end=180, fill="pink", width=3)
-editor.line((10, 300), (200, 350), width=4, color="black")
+editor.arc((10, 150), width=100, height=100, start=0, rotation=180, fill="pink", stroke_width=3)
+editor.line((10, 300), (200, 350), width=4, fill="black")
 editor.donut((300, 300), inner_radius=30, outer_radius=60, fill="teal")
 ```
 
