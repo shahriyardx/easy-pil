@@ -538,7 +538,8 @@ class Duotone(Effect):
 
     def _parse(self, color: Color) -> tuple[int, int, int]:
         if isinstance(color, str):
-            return getrgb(color)
+            c = getrgb(color)
+            return (c[0], c[1], c[2])
         if isinstance(color, int):
             return ((color >> 16) & 0xFF, (color >> 8) & 0xFF, color & 0xFF)
         return tuple(color[:3])  # type: ignore[arg-type]
