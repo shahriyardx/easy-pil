@@ -293,7 +293,7 @@ class Editor:
 
         return self
 
-    def text(  # noqa: PLR0913
+    def text(
         self,
         position: tuple[float, float],
         text: str,
@@ -359,6 +359,7 @@ class Editor:
         *,
         space_separated: bool = True,
         align: Literal["left", "center", "right"] = "left",
+        anchor: str | None = None,
     ) -> Editor:
         """
         Draw rich text with mixed colors and fonts inline.
@@ -373,9 +374,16 @@ class Editor:
             Separate texts with space, by default True
         align : Literal["left", "center", "right"], optional
             Align texts, by default "left"
+        anchor : str, optional
+            Pillow text anchor (e.g. "mm" for middle-middle). Defaults to
+            align-based anchor ("lt"/"mt"/"rt").
 
         """
         draw = ImageDraw.Draw(self.image)
+
+        if anchor is None:
+            # align maps to anchor only when no manual position shifting occurs
+            anchor = {"left": "lt", "center": "lt", "right": "lt"}[align]
 
         if align == "right":
             total_width = 0
@@ -397,13 +405,14 @@ class Editor:
             sentence = text.text
             font = text.font
             color = text.color
+            seg_anchor = text.anchor if text.anchor else anchor
 
             if space_separated:
                 width = font.getlength(sentence + " ")
             else:
                 width = font.getlength(sentence)
 
-            draw.text(position, sentence, color, font=font, anchor="lm")
+            draw.text(position, sentence, color, font=font, anchor=seg_anchor)
             position = (int(position[0] + width), int(position[1]))
 
         return self
@@ -415,6 +424,7 @@ class Editor:
         *,
         space_separated: bool = True,
         align: Literal["left", "center", "right"] = "left",
+        anchor: str | None = None,
     ) -> Editor:
         """Backward-compatible alias for :meth:`rich_text`."""
         return self.rich_text(
@@ -422,9 +432,10 @@ class Editor:
             texts,
             space_separated=space_separated,
             align=align,
+            anchor=anchor,
         )
 
-    def text_box(  # noqa: PLR0913
+    def text_box(
         self,
         position: tuple[float, float],
         text: str,
@@ -522,7 +533,7 @@ class Editor:
 
         return self
 
-    def text_shadow(  # noqa: PLR0913
+    def text_shadow(
         self,
         position: tuple[float, float],
         text: str,
@@ -572,7 +583,7 @@ class Editor:
             stroke_fill=stroke_fill,
         )
 
-    def rectangle(  # noqa: PLR0913
+    def rectangle(
         self,
         position: tuple[float, float],
         width: float,
@@ -669,7 +680,7 @@ class Editor:
 
         return self
 
-    def bar(  # noqa: PLR0913
+    def bar(
         self,
         position: tuple[int, int],
         max_width: float,
@@ -789,7 +800,7 @@ class Editor:
 
         return self
 
-    def rounded_bar(  # noqa: PLR0913
+    def rounded_bar(
         self,
         position: tuple[float, float],
         width: float,
@@ -836,7 +847,7 @@ class Editor:
             radius=radius if radius is not None else int(height // 2),
         )
 
-    def ellipse(  # noqa: PLR0913
+    def ellipse(
         self,
         position: tuple[float, float],
         width: float,
@@ -949,7 +960,7 @@ class Editor:
 
         return self
 
-    def arc(  # noqa: PLR0913
+    def arc(
         self,
         position: tuple[float, float],
         width: float,

@@ -1,7 +1,12 @@
 from easy_pil import Editor, Font
+from pathlib import Path
 
-background = Editor("assets/wlcbg.jpg")
-profile = Editor("assets/pfp.png").resize((150, 150)).circle_image()
+background = Editor(Path(__file__).parent / "assets" / "wlcbg.jpg")
+profile = (
+    Editor(Path(__file__).parent / "assets" / "pfp.png")
+    .resize((150, 150))
+    .circle_image()
+)
 
 # To use users profile picture load it from url
 # using the load_image/load_image_async function

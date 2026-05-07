@@ -25,10 +25,12 @@ class Text:
         text: str,
         font: ImageFont.FreeTypeFont | Font,
         color: int | str | tuple[int, int, int] | tuple[int, int, int, int] = "black",
+        anchor: str | None = None,
     ) -> None:
         """Initialize Text with content, font, and color."""
         self.text = text
         self.color = color
+        self.anchor = anchor
 
         if isinstance(font, Font):
             self.font = font.font

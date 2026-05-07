@@ -1,4 +1,5 @@
 from easy_pil import Canvas, Editor, Font
+from pathlib import Path
 
 user_data = {
     "name": "Shahriyar#9770",
@@ -10,7 +11,7 @@ user_data = {
 
 
 background = Editor(Canvas((800, 240), color="#23272A"))
-profile = Editor("assets/pfp.png").resize((200, 200))
+profile = Editor(Path(__file__).parent / "assets" / "pfp.png").resize((200, 200))
 
 # To use users profile picture load it from url
 # using the load_image/load_image_async function
