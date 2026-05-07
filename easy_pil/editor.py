@@ -721,7 +721,17 @@ class Editor:
 
         if isinstance(fill, Gradient):
             grad_img = fill.render(bar_width, bh)
-            main.paste(grad_img, (0, 0))
+            if radius > 0:
+                fill_mask = PilImage.new("L", (bar_width, bh), 0)
+                fill_draw = ImageDraw.Draw(fill_mask)
+                fill_draw.rounded_rectangle(
+                    (0, 0, bar_width, bh),
+                    radius=radius,
+                    fill=255,
+                )
+                main.paste(grad_img, (0, 0), fill_mask)
+            else:
+                main.paste(grad_img, (0, 0))
             if outline:
                 main_draw = ImageDraw.Draw(main)
                 if radius <= 0:
@@ -784,6 +794,7 @@ class Editor:
         fill: Color | Gradient | None = None,
         color: Color | Gradient | None = None,
         stroke_width: int = 1,
+        radius: int | None = None,
     ) -> Editor:
         """
         Draw a rounded bar.
@@ -804,6 +815,8 @@ class Editor:
             Alias of color, by default None
         stroke_width : float, optional
             Stroke width, by default 1
+        radius : int, optional
+            Corner radius. Defaults to height//2 (fully rounded).
 
         """
         if color:
@@ -816,7 +829,7 @@ class Editor:
             percentage=int(percentage),
             fill=fill,
             stroke_width=stroke_width,
-            radius=int(height // 2),
+            radius=radius if radius is not None else int(height // 2),
         )
 
     def ellipse(  # noqa: PLR0913
