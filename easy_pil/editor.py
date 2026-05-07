@@ -300,6 +300,7 @@ class Editor:
         font: ImageFont.FreeTypeFont | Font | None = None,
         color: Color = "black",
         align: Literal["left", "center", "right"] = "left",
+        anchor: str | None = None,
         stroke_width: int | None = None,
         stroke_fill: Color = "black",
     ) -> Editor:
@@ -318,6 +319,8 @@ class Editor:
             Color of the font, by default "black"
         align : Literal["left", "center", "right"], optional
             Align text, by default "left"
+        anchor : str, optional
+            Pillow text anchor (e.g. "mm" for middle-middle). Overrides align if set.
         stroke_width : int, optional
             Whether there should be any stroke. Defaults to
             None. It represents the width of the said stroke.
@@ -330,6 +333,7 @@ class Editor:
             font = font.font
 
         anchors = {"left": "lt", "center": "mt", "right": "rt"}
+        effective_anchor = anchor if anchor else anchors[align]
 
         draw = ImageDraw.Draw(self.image)
 
@@ -339,12 +343,12 @@ class Editor:
                 text,
                 color,
                 font=font,
-                anchor=anchors[align],
+                anchor=effective_anchor,
                 stroke_width=stroke_width,
                 stroke_fill=stroke_fill,
             )
         else:
-            draw.text(position, text, color, font=font, anchor=anchors[align])
+            draw.text(position, text, color, font=font, anchor=effective_anchor)
 
         return self
 
