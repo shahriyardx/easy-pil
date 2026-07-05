@@ -138,14 +138,11 @@ class DropShadow(Effect):
         w, h = image.size
         alpha_channel = image.convert("RGBA").split()[3]
 
-        shadow = PilImage.new("RGBA", (w, h), (0, 0, 0, 0))
-
         color_rgba = to_rgba(self.color, alpha=int(self.alpha * 255))
 
+        # Solid shadow color, shaped by the source alpha scaled by opacity.
+        shadow = PilImage.new("RGBA", (w, h), (*color_rgba[:3], 0))
         shadow.putalpha(alpha_channel.point(lambda x: int(x * (color_rgba[3] / 255))))
-
-        color_layer = PilImage.new("RGBA", (w, h), color_rgba[:3] + (255,))
-        shadow = PilImage.alpha_composite(shadow, color_layer)
 
         if self.blur_radius > 0:
             shadow = shadow.filter(ImageFilter.GaussianBlur(radius=self.blur_radius))
