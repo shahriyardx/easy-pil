@@ -385,21 +385,22 @@ class Editor:
             # align maps to anchor only when no manual position shifting occurs
             anchor = {"left": "lt", "center": "lt", "right": "lt"}[align]
 
-        if align == "right":
+        if align in ("right", "center"):
             total_width = 0
 
-            for t in texts:
-                total_width += t.font.getlength(t.text)
+            for index, t in enumerate(texts):
+                if space_separated and index != len(texts) - 1:
+                    total_width += t.font.getlength(t.text + " ")
+                else:
+                    total_width += t.font.getlength(t.text)
 
-            position = (int(position[0] - total_width), int(position[1]))
-
-        if align == "center":
-            total_width = 0
-
-            for t in texts:
-                total_width += t.font.getlength(t.text)
-
-            position = (int(position[0] - (total_width / 2)), int(position[1]))
+            if align == "right":
+                position = (int(position[0] - total_width), int(position[1]))
+            else:
+                position = (
+                    int(position[0] - (total_width / 2)),
+                    int(position[1]),
+                )
 
         for text in texts:
             sentence = text.text
@@ -1352,16 +1353,20 @@ class Editor:
         else:
             font_path = font
 
-        ft_font = ImageFont.truetype(font_path, size=min_size)
-        size = max_size
-        while size >= min_size:
-            ft_font = ImageFont.truetype(font_path, size=size)
+        best_size = min_size
+        low = min_size
+        high = max_size
+        while low <= high:
+            mid = (low + high) // 2
+            ft_font = ImageFont.truetype(font_path, size=mid)
             bbox = ft_font.getbbox(text)
-            if bbox[2] <= max_width:
-                break
-            size -= 1
+            if bbox[2] - bbox[0] <= max_width:
+                best_size = mid
+                low = mid + 1
+            else:
+                high = mid - 1
 
-        return ft_font
+        return ImageFont.truetype(font_path, size=best_size)
 
     def centered_text(
         self,

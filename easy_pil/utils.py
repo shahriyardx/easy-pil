@@ -15,7 +15,7 @@ from PIL.GifImagePlugin import GifImageFile
 async def run_in_executor(func: Callable[..., Any], **kwargs: Any) -> Any:
     """Run function in executor."""
     func = functools.partial(func, **kwargs)
-    return await asyncio.get_event_loop().run_in_executor(None, func)
+    return await asyncio.get_running_loop().run_in_executor(None, func)
 
 
 def load_image(
@@ -39,7 +39,9 @@ def load_image(
         Image from the provided link (if any)
 
     """
-    _bytes = BytesIO(requests.get(link, timeout=30).content)
+    resp = requests.get(link, timeout=30)
+    resp.raise_for_status()
+    _bytes = BytesIO(resp.content)
     image = Image.open(_bytes)
     if not raw:
         image = image.convert("RGBA")
@@ -71,14 +73,17 @@ async def load_image_async(
         Image link
 
     """
+    timeout = aiohttp.ClientTimeout(total=30)
     if isinstance(session, aiohttp.ClientSession):
-        async with session.get(link) as response:
+        async with session.get(link, timeout=timeout) as response:
+            response.raise_for_status()
             _bytes = BytesIO(await response.read())
     else:
         async with (
             aiohttp.ClientSession() as new_session,
-            new_session.get(link) as response,
+            new_session.get(link, timeout=timeout) as response,
         ):
+            response.raise_for_status()
             _bytes = BytesIO(await response.read())
 
     image = Image.open(_bytes)

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import inspect
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
 from functools import partial
@@ -38,7 +39,12 @@ class AioEditor:
 
     def __getattr__(self, name: str) -> Callable[..., None]:
         """Dynamically create handler methods for Editor methods."""
-        if hasattr(Editor, name):
+        attr = inspect.getattr_static(Editor, name, None)
+        if (
+            callable(attr)
+            and not isinstance(attr, property)
+            and not name.startswith("_")
+        ):
 
             def handler(*args: Any, **kwargs: Any) -> None:
                 self.instructions.append(
@@ -58,6 +64,6 @@ class AioEditor:
                 *ins.args,
                 **ins.kwargs,
             )
-            await asyncio.get_event_loop().run_in_executor(None, func)
+            await asyncio.get_running_loop().run_in_executor(None, func)
 
         return editor

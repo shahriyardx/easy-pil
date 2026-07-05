@@ -37,7 +37,7 @@ class Canvas:
         color: Color | Gradient = 0,
     ) -> None:
         """Initialize Canvas."""
-        if not (size or (width and height)):
+        if size is None and not (width > 0 and height > 0):
             msg = "Provide either size or both width and height"
             raise ValueError(msg)
 

@@ -51,8 +51,8 @@ class Vignette(Effect):
     def apply(self, image: PilImage.Image) -> PilImage.Image:
         w, h = image.size
         cx, cy = w // 2, h // 2
-        rx = max(cx - int(self.radius), 0)
-        ry = max(cy - int(self.radius), 0)
+        rx = max(cx - int(self.radius), 1) if cx > 0 else 0
+        ry = max(cy - int(self.radius), 1) if cy > 0 else 0
 
         mask = PilImage.new("L", (w, h), 0)
         draw = ImageDraw.Draw(mask)
@@ -276,7 +276,7 @@ class Gradient(Effect):
         parsed: list[tuple[int, int, int]] = []
         for c in self.colors:
             if isinstance(c, str):
-                parsed.append((255, 255, 255))
+                parsed.append(getrgb(c)[:3])
             elif isinstance(c, int):
                 parsed.append((c >> 16, (c >> 8) & 0xFF, c & 0xFF))
             else:
@@ -313,8 +313,9 @@ class Gradient(Effect):
                 draw = ImageDraw.Draw(gradient)
                 draw.line([(x, 0), (x, h)], fill=color)
 
-        result = image.convert("RGBA")
-        return PilImage.alpha_composite(gradient, result)
+        source_alpha = image.convert("RGBA").getchannel("A")
+        gradient.putalpha(source_alpha)
+        return gradient
 
 
 class PixelateRegion(Effect):
@@ -644,7 +645,7 @@ class EdgeGlow(Effect):
 
     def _parse(self, color: Color) -> tuple[int, int, int]:
         if isinstance(color, str):
-            return (0, 255, 255)
+            return getrgb(color)[:3]
         if isinstance(color, int):
             return ((color >> 16) & 0xFF, (color >> 8) & 0xFF, color & 0xFF)
         return tuple(color[:3])  # type: ignore[arg-type]
@@ -936,14 +937,19 @@ class Glitch(Effect):
     ----------
     amount : float, optional
         Glitch intensity 0-1, by default 0.5
+    seed : int | None, optional
+        Seed for reproducible output. If None (default), output is random.
 
     """
 
-    def __init__(self, amount: float = 0.5) -> None:
+    def __init__(self, amount: float = 0.5, seed: int | None = None) -> None:
         self.amount = max(0.0, min(1.0, amount))
+        self.seed = seed
 
     def apply(self, image: PilImage.Image) -> PilImage.Image:
         import random as _random
+
+        rng = _random.Random(self.seed)
 
         img = image.convert("RGBA")
         w, h = img.size
@@ -953,9 +959,9 @@ class Glitch(Effect):
 
         y = 0
         while y < h:
-            if _random.random() < 0.25 * self.amount:
+            if rng.random() < 0.25 * self.amount:
                 sh = min(strip_h, h - y)
-                offset = int((_random.randint(-15, 15)) * self.amount)
+                offset = int((rng.randint(-15, 15)) * self.amount)
                 for sy in range(sh):
                     for sx in range(w):
                         sx2 = sx + offset

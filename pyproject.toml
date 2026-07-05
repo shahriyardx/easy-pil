@@ -1,6 +1,6 @@
 [project]
 name = "easy-pil"
-version = "0.6.1"
+version = "0.6.2"
 description = "A Python library built on top of PIL to easily edit/modify images"
 readme = { file = "README.md", content-type = "text/markdown" }
 keywords = ["easy-pil", "easy pillow", "Pillow", "image editing"]
