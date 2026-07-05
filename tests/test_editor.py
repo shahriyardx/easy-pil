@@ -7,7 +7,7 @@ from unittest.mock import patch
 
 from PIL import Image
 
-from easy_pil import Canvas, Editor, Font, Text
+from easy_pil import Canvas, Editor, Font, LinearGradient, Text
 from easy_pil.font import fonts_path
 
 
@@ -645,6 +645,390 @@ class TestEditor(unittest.TestCase):
         f = Font(fonts_path["poppins"]["regular"], size=20)
         editor = self.editor.centered_text("Hi", font=f)
         assert isinstance(editor, Editor)
+
+    # --- Feature 1: text draw metrics ---
+
+    def test_last_text_bbox_initial(self) -> None:
+        """Tests last_text_bbox defaults to zeros."""
+        self.assertEqual(self.editor.last_text_bbox, (0, 0, 0, 0))
+        self.assertEqual(self.editor.last_text_size, (0, 0))
+
+    def test_last_text_bbox_after_text(self) -> None:
+        """Tests text() records a non-empty bbox."""
+        self.editor.text((10, 10), "Hello", font=Font.poppins(size=20))
+        bbox = self.editor.last_text_bbox
+        assert bbox != (0, 0, 0, 0)
+        w, h = self.editor.last_text_size
+        assert w > 0
+        assert h > 0
+        self.assertEqual(w, bbox[2] - bbox[0])
+        self.assertEqual(h, bbox[3] - bbox[1])
+
+    def test_last_text_bbox_centered_text(self) -> None:
+        """Tests centered_text records a bbox."""
+        self.editor.centered_text("Hi", Font.poppins(size=20))
+        assert self.editor.last_text_bbox != (0, 0, 0, 0)
+
+    def test_last_text_bbox_text_box(self) -> None:
+        """Tests text_box records a multi-line bbox."""
+        self.editor.text_box(
+            (5, 5),
+            "one two three four five six",
+            Font.poppins(size=14),
+            max_width=40,
+        )
+        assert self.editor.last_text_bbox != (0, 0, 0, 0)
+
+    def test_last_text_bbox_rich_text(self) -> None:
+        """Tests rich_text records a union bbox."""
+        a = Text("Ab", color="white", font=Font.poppins(size=20))
+        b = Text("Cd", color="red", font=Font.poppins(size=20))
+        self.editor.rich_text((0, 0), [a, b], space_separated=False)
+        assert self.editor.last_text_bbox != (0, 0, 0, 0)
+
+    def test_last_text_bbox_shadow(self) -> None:
+        """Tests text_shadow records a bbox."""
+        self.editor.text_shadow((10, 10), "Sh", Font.poppins(size=20))
+        assert self.editor.last_text_bbox != (0, 0, 0, 0)
+
+    # --- Feature 3: progress bar polish ---
+
+    def test_bar_show_percentage(self) -> None:
+        """Tests bar with show_percentage."""
+        editor = self.editor.bar(
+            (10, 40),
+            80,
+            16,
+            42,
+            color="white",
+            show_percentage=True,
+        )
+        assert isinstance(editor, Editor)
+
+    def test_bar_show_percentage_custom_font(self) -> None:
+        """Tests bar percentage with custom font/color."""
+        editor = self.editor.bar(
+            (10, 40),
+            80,
+            16,
+            75,
+            color="white",
+            show_percentage=True,
+            text_font=Font.poppins(size=10),
+            text_color="black",
+        )
+        assert isinstance(editor, Editor)
+
+    def test_bar_segments(self) -> None:
+        """Tests segmented bar."""
+        editor = self.editor.bar(
+            (10, 40),
+            90,
+            16,
+            80,
+            color="lime",
+            segments=5,
+        )
+        assert isinstance(editor, Editor)
+
+    def test_bar_gradient_outline(self) -> None:
+        """Tests bar with gradient outline."""
+        g = LinearGradient(["red", "blue"])
+        editor = self.editor.bar(
+            (10, 40),
+            80,
+            16,
+            60,
+            color="white",
+            outline=g,
+            stroke_width=2,
+        )
+        assert isinstance(editor, Editor)
+
+    def test_bar_gradient_fill_segments(self) -> None:
+        """Tests gradient fill combined with segments."""
+        g = LinearGradient(["red", "blue"])
+        editor = self.editor.bar(
+            (10, 40),
+            90,
+            16,
+            90,
+            color=g,
+            segments=4,
+        )
+        assert isinstance(editor, Editor)
+
+    def test_rounded_bar_percentage_and_outline(self) -> None:
+        """Tests rounded_bar with new params forwarded."""
+        g = LinearGradient(["red", "blue"])
+        editor = self.editor.rounded_bar(
+            (10, 40),
+            80,
+            16,
+            50,
+            color="white",
+            outline=g,
+            show_percentage=True,
+            segments=3,
+        )
+        assert isinstance(editor, Editor)
+
+    # --- Feature 4: paste anchor + opacity ---
+
+    def test_paste_anchor_center(self) -> None:
+        """Tests paste with center anchor."""
+        overlay = Canvas((20, 20), color="red")
+        editor = self.editor.paste(overlay, "center")
+        assert isinstance(editor, Editor)
+        self.assertEqual(editor.image.getpixel((50, 50))[:3], (255, 0, 0))
+
+    def test_paste_anchor_corners(self) -> None:
+        """Tests paste with each corner/edge anchor keyword."""
+        overlay = Canvas((10, 10), color="red")
+        for anchor in (
+            "top-left",
+            "top-right",
+            "bottom-left",
+            "bottom-right",
+            "top",
+            "bottom",
+            "left",
+            "right",
+        ):
+            editor = self.editor.paste(overlay, anchor)
+            assert isinstance(editor, Editor)
+
+    def test_paste_bad_anchor(self) -> None:
+        """Tests paste with invalid anchor raises."""
+        overlay = Canvas((10, 10), color="red")
+        with self.assertRaises(ValueError):
+            self.editor.paste(overlay, "middle")
+
+    def test_paste_opacity(self) -> None:
+        """Tests paste with reduced opacity blends."""
+        overlay = Canvas((100, 100), color="red")
+        editor = self.editor.paste(overlay, (0, 0), opacity=0.5)
+        px = editor.image.getpixel((50, 50))
+        # half-opacity red over black -> ~ (127, 0, 0)
+        assert 100 < px[0] < 160
+        assert px[1] == 0
+
+    def test_paste_tuple_unchanged(self) -> None:
+        """Tests paste with tuple + full opacity still works."""
+        overlay = Canvas((50, 50), color="red")
+        editor = self.editor.paste(overlay, (0, 0))
+        self.assertEqual(editor.image.getpixel((10, 10))[:3], (255, 0, 0))
+
+    # --- Feature 5: new shapes ---
+
+    def test_regular_polygon(self) -> None:
+        """Tests regular_polygon."""
+        editor = self.editor.regular_polygon(
+            (50, 50),
+            6,
+            30,
+            fill="red",
+            outline="white",
+            stroke_width=2,
+        )
+        assert isinstance(editor, Editor)
+
+    def test_regular_polygon_gradient(self) -> None:
+        """Tests regular_polygon with gradient fill."""
+        g = LinearGradient(["red", "blue"])
+        editor = self.editor.regular_polygon((50, 50), 5, 30, color=g)
+        assert isinstance(editor, Editor)
+
+    def test_star(self) -> None:
+        """Tests star."""
+        editor = self.editor.star(
+            (50, 50),
+            5,
+            30,
+            14,
+            fill="yellow",
+            outline="black",
+        )
+        assert isinstance(editor, Editor)
+
+    def test_star_gradient(self) -> None:
+        """Tests star with gradient fill."""
+        g = LinearGradient(["red", "blue"])
+        editor = self.editor.star((50, 50), 6, 30, 15, color=g)
+        assert isinstance(editor, Editor)
+
+    def test_triangle(self) -> None:
+        """Tests triangle."""
+        editor = self.editor.triangle((10, 10), 40, 40, fill="green")
+        # apex-area pixel should be filled somewhere in the box
+        assert isinstance(editor, Editor)
+        self.assertEqual(editor.image.getpixel((30, 45))[:3], (0, 128, 0))
+
+    def test_triangle_gradient(self) -> None:
+        """Tests triangle with gradient."""
+        g = LinearGradient(["red", "blue"])
+        editor = self.editor.triangle((10, 10), 40, 40, color=g)
+        assert isinstance(editor, Editor)
+
+    def test_squircle(self) -> None:
+        """Tests squircle solid fill."""
+        editor = self.editor.squircle(
+            (10, 10),
+            60,
+            60,
+            fill="red",
+            outline="white",
+            stroke_width=3,
+        )
+        assert isinstance(editor, Editor)
+        # center should be filled
+        self.assertEqual(editor.image.getpixel((40, 40))[:3], (255, 0, 0))
+        # far corner should stay black (superellipse clips corners)
+        self.assertEqual(editor.image.getpixel((11, 11))[:3], (0, 0, 0))
+
+    def test_squircle_gradient(self) -> None:
+        """Tests squircle with gradient fill."""
+        g = LinearGradient(["red", "blue"])
+        editor = self.editor.squircle((10, 10), 60, 60, color=g)
+        assert isinstance(editor, Editor)
+
+    def test_speech_bubble(self) -> None:
+        """Tests speech_bubble solid with each tail side."""
+        for tail in (
+            "bottom-left",
+            "bottom-right",
+            "bottom",
+            "top-left",
+            "top-right",
+            "top",
+            "left",
+            "right",
+        ):
+            editor = self.editor.speech_bubble(
+                (20, 30),
+                50,
+                30,
+                tail=tail,
+                fill="white",
+                outline="black",
+            )
+            assert isinstance(editor, Editor)
+
+    def test_speech_bubble_gradient(self) -> None:
+        """Tests speech_bubble with gradient fill."""
+        g = LinearGradient(["red", "blue"])
+        editor = self.editor.speech_bubble(
+            (20, 30),
+            50,
+            30,
+            fill=g,
+            outline="black",
+        )
+        assert isinstance(editor, Editor)
+
+    # --- Feature 6: gradient_text ---
+
+    def test_gradient_text(self) -> None:
+        """Tests gradient_text fills glyphs and sets bbox."""
+        g = LinearGradient(["red", "blue"])
+        editor = self.editor.gradient_text(
+            (10, 10),
+            "Grad",
+            Font.poppins(size=28),
+            g,
+        )
+        assert isinstance(editor, Editor)
+        assert editor.last_text_bbox != (0, 0, 0, 0)
+
+    def test_gradient_text_stroke_align(self) -> None:
+        """Tests gradient_text with stroke and center align."""
+        g = LinearGradient(["red", "blue"])
+        editor = self.editor.gradient_text(
+            (50, 10),
+            "Hi",
+            Font.poppins(size=28),
+            g,
+            align="center",
+            stroke_width=2,
+            stroke_fill="black",
+        )
+        assert isinstance(editor, Editor)
+
+    # --- Feature 7: pattern ---
+
+    def test_pattern(self) -> None:
+        """Tests pattern tiling."""
+        tile = Editor(Canvas((10, 10), color="red"))
+        editor = self.editor.pattern(tile)
+        assert isinstance(editor, Editor)
+        self.assertEqual(editor.image.getpixel((5, 5))[:3], (255, 0, 0))
+
+    def test_pattern_spacing_offset(self) -> None:
+        """Tests pattern with spacing and offset."""
+        tile = Canvas((10, 10), color="red")
+        editor = self.editor.pattern(tile, spacing=(4, 4), offset=(2, 2))
+        assert isinstance(editor, Editor)
+
+    def test_pattern_pil_image(self) -> None:
+        """Tests pattern with raw PIL image."""
+        tile = Image.new("RGBA", (8, 8), "blue")
+        editor = self.editor.pattern(tile)
+        assert isinstance(editor, Editor)
+
+    # --- Feature 11: copy ---
+
+    def test_copy(self) -> None:
+        """Tests copy returns an independent Editor."""
+        clone = self.editor.copy()
+        assert isinstance(clone, Editor)
+        assert clone is not self.editor
+        assert clone.image is not self.editor.image
+        # mutating the clone should not affect the original
+        clone.rectangle((0, 0), 100, 100, fill="red")
+        self.assertEqual(self.editor.image.getpixel((50, 50))[:3], (0, 0, 0))
+        self.assertEqual(clone.image.getpixel((50, 50))[:3], (255, 0, 0))
+
+    # --- Feature 12: from_url ---
+
+    def test_from_url(self) -> None:
+        """Tests from_url via mocked load_image."""
+        fake = Image.new("RGBA", (30, 30), "red")
+        with patch("easy_pil.utils.load_image", return_value=fake) as mocked:
+            editor = Editor.from_url("http://example.com/x.png")
+        mocked.assert_called_once()
+        assert isinstance(editor, Editor)
+        self.assertEqual(editor.image.size, (30, 30))
+
+    # --- Feature 15: smart save ---
+
+    def test_save_infer_png(self) -> None:
+        """Tests save infers PNG from extension."""
+        import tempfile
+
+        with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as f:
+            name = f.name
+        self.editor.save(name)
+        saved = Image.open(name)
+        self.assertEqual(saved.format, "PNG")
+
+    def test_save_jpeg_flatten_rgba(self) -> None:
+        """Tests save flattens RGBA to RGB for JPEG."""
+        import tempfile
+
+        with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as f:
+            name = f.name
+        # editor image is RGBA; must not raise
+        self.editor.save(name)
+        saved = Image.open(name)
+        self.assertEqual(saved.mode, "RGB")
+        self.assertEqual(saved.format, "JPEG")
+
+    def test_save_explicit_format_bytesio(self) -> None:
+        """Tests save with explicit format to BytesIO still works."""
+        buf = BytesIO()
+        self.editor.save(buf, "PNG")
+        buf.seek(0)
+        assert Image.open(buf).format == "PNG"
 
 
 if __name__ == "__main__":

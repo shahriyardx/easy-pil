@@ -3,6 +3,7 @@
 from ._version import __version__, version_info
 from .aio_editor import AioEditor
 from .canvas import Canvas
+from .color import to_rgb, to_rgba
 from .editor import Editor
 from .effect import (
     Bloom,
@@ -103,5 +104,7 @@ __all__ = [
     "load_image",
     "load_image_async",
     "run_in_executor",
+    "to_rgb",
+    "to_rgba",
     "version_info",
 ]

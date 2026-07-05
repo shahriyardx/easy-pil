@@ -2,12 +2,20 @@
 
 from __future__ import annotations
 
+import math
 from io import BytesIO
 from pathlib import Path
 from typing import Any, Literal
 
 from PIL import Image as PilImage
-from PIL import ImageDraw, ImageEnhance, ImageFilter, ImageFont, ImageOps
+from PIL import (
+    ImageChops,
+    ImageDraw,
+    ImageEnhance,
+    ImageFilter,
+    ImageFont,
+    ImageOps,
+)
 from PIL.Image import Image
 
 from .canvas import Canvas, Color
@@ -52,6 +60,22 @@ class Editor:
             self.image = source.image.convert("RGBA")
         else:
             self.image = source.convert("RGBA")
+
+        self.last_text_bbox: tuple[int, int, int, int] = (0, 0, 0, 0)
+
+    @property
+    def last_text_size(self) -> tuple[int, int]:
+        """
+        Return (width, height) of the last drawn text.
+
+        Returns
+        -------
+        tuple[int, int]
+            Width and height of :attr:`last_text_bbox`.
+
+        """
+        left, top, right, bottom = self.last_text_bbox
+        return (right - left, bottom - top)
 
     def __enter__(self) -> Editor:
         """Context manager entry."""
@@ -262,10 +286,39 @@ class Editor:
 
         return self
 
+    def _resolve_anchor(
+        self,
+        anchor: str,
+        size: tuple[int, int],
+    ) -> tuple[int, int]:
+        """Resolve an anchor keyword to top-left pixel coords for a pasted image."""
+        iw, ih = self.image.size
+        pw, ph = size
+        cx = (iw - pw) // 2
+        cy = (ih - ph) // 2
+        right = iw - pw
+        bottom = ih - ph
+        mapping = {
+            "center": (cx, cy),
+            "top-left": (0, 0),
+            "top-right": (right, 0),
+            "bottom-left": (0, bottom),
+            "bottom-right": (right, bottom),
+            "top": (cx, 0),
+            "bottom": (cx, bottom),
+            "left": (0, cy),
+            "right": (right, cy),
+        }
+        if anchor not in mapping:
+            msg = f"Unknown paste anchor: {anchor!r}"
+            raise ValueError(msg)
+        return mapping[anchor]
+
     def paste(
         self,
         image: Image | Editor | Canvas,
-        position: tuple[int, int],
+        position: tuple[int, int] | str,
+        opacity: float = 1.0,
     ) -> Editor:
         """
         Paste image into editor.
@@ -274,8 +327,13 @@ class Editor:
         ----------
         image : Union[Image, Editor, Canvas]
             Image to paste
-        position : Tuple[int, int]
-            Position to paste
+        position : Tuple[int, int] | str
+            Position to paste. Either pixel coords, or an anchor keyword:
+            "center", "top-left", "top-right", "bottom-left", "bottom-right",
+            "top", "bottom", "left", "right".
+        opacity : float, optional
+            Opacity of pasted image (0.0-1.0), by default 1.0. When < 1 the
+            pasted image alpha is scaled before compositing.
 
         """
         blank = PilImage.new(
@@ -285,6 +343,16 @@ class Editor:
         )
 
         pil_image = image.image if isinstance(image, (Editor, Canvas)) else image
+
+        if isinstance(position, str):
+            position = self._resolve_anchor(position, pil_image.size)
+
+        if opacity < 1.0:
+            pil_image = pil_image.convert("RGBA").copy()
+            alpha = pil_image.getchannel("A").point(
+                lambda a: int(a * opacity),
+            )
+            pil_image.putalpha(alpha)
 
         blank.paste(pil_image, position)
         self.image = PilImage.alpha_composite(self.image, blank)
@@ -350,6 +418,20 @@ class Editor:
         else:
             draw.text(position, text, color, font=font, anchor=effective_anchor)
 
+        bbox = draw.textbbox(
+            position,
+            text,
+            font=font,
+            anchor=effective_anchor,
+            stroke_width=stroke_width or 0,
+        )
+        self.last_text_bbox = (
+            int(bbox[0]),
+            int(bbox[1]),
+            int(bbox[2]),
+            int(bbox[3]),
+        )
+
         return self
 
     def rich_text(
@@ -402,6 +484,7 @@ class Editor:
                     int(position[1]),
                 )
 
+        seg_bboxes = []
         for text in texts:
             sentence = text.text
             font = text.font
@@ -414,7 +497,18 @@ class Editor:
                 width = font.getlength(sentence)
 
             draw.text(position, sentence, color, font=font, anchor=seg_anchor)
+            seg_bboxes.append(
+                draw.textbbox(position, sentence, font=font, anchor=seg_anchor),
+            )
             position = (int(position[0] + width), int(position[1]))
+
+        if seg_bboxes:
+            self.last_text_bbox = (
+                int(min(b[0] for b in seg_bboxes)),
+                int(min(b[1] for b in seg_bboxes)),
+                int(max(b[2] for b in seg_bboxes)),
+                int(max(b[3] for b in seg_bboxes)),
+            )
 
         return self
 
@@ -483,6 +577,7 @@ class Editor:
         draw = ImageDraw.Draw(self.image)
         x, y = position
         line = ""
+        drawn_bboxes = []
 
         for word in text.split():
             test_line = f"{line} {word}".strip()
@@ -507,6 +602,14 @@ class Editor:
                     )
                 else:
                     draw.text((cx, y), line, color, font=font)
+                drawn_bboxes.append(
+                    draw.textbbox(
+                        (cx, y),
+                        line,
+                        font=font,
+                        stroke_width=stroke_width or 0,
+                    ),
+                )
                 y += font.getbbox(line)[3] + line_spacing
                 line = word
             else:
@@ -531,6 +634,22 @@ class Editor:
                 )
             else:
                 draw.text((cx, y), line, color, font=font)
+            drawn_bboxes.append(
+                draw.textbbox(
+                    (cx, y),
+                    line,
+                    font=font,
+                    stroke_width=stroke_width or 0,
+                ),
+            )
+
+        if drawn_bboxes:
+            self.last_text_bbox = (
+                int(min(b[0] for b in drawn_bboxes)),
+                int(min(b[1] for b in drawn_bboxes)),
+                int(max(b[2] for b in drawn_bboxes)),
+                int(max(b[3] for b in drawn_bboxes)),
+            )
 
         return self
 
@@ -689,9 +808,14 @@ class Editor:
         percentage: int = 1,
         fill: Color | Gradient | None = None,
         color: Color | Gradient | None = None,
-        outline: Color | None = None,
+        outline: Color | Gradient | None = None,
         stroke_width: int = 1,
         radius: int = 0,
+        *,
+        segments: int = 0,
+        show_percentage: bool = False,
+        text_font: ImageFont.FreeTypeFont | Font | None = None,
+        text_color: Color = "white",
     ) -> Editor:
         """
         Draw a progress bar.
@@ -710,12 +834,21 @@ class Editor:
             Fill color or gradient, by default None
         color : Color or Gradient, optional
             Alias of fill, by default None
-        outline : Color, optional
-            Outline color, by default None
+        outline : Color or Gradient, optional
+            Outline color or gradient, by default None
         stroke_width : float, optional
             Stroke width, by default 1
         radius : int, optional
             Radius of the bar, by default 0
+        segments : int, optional
+            When > 0, split the filled portion into this many equal chunks
+            with a small gap between them, by default 0
+        show_percentage : bool, optional
+            Draw the integer percentage centered on the bar, by default False
+        text_font : ImageFont.FreeTypeFont | Font, optional
+            Font for the percentage text. Defaults to Poppins.
+        text_color : Color, optional
+            Color of the percentage text, by default "white"
 
         """
         if percentage == 0:
@@ -735,51 +868,67 @@ class Editor:
         bg = PilImage.new("RGBA", (bw, bh), (0, 0, 0, 0))
         main = PilImage.new("RGBA", (bw, bh), (0, 0, 0, 0))
 
-        if isinstance(fill, Gradient):
-            grad_img = fill.render(bar_width, bh)
+        gap = 2
+        if segments and segments > 0 and bar_width > 0:
+            seg_total = bar_width - gap * (segments - 1)
+            seg_w = seg_total / segments
+            if seg_w < 1:
+                seg_w = bar_width / segments
+                gap = 0
+            rects = []
+            pos = 0.0
+            for _ in range(segments):
+                sx = int(round(pos))
+                ex = min(int(round(pos + seg_w)), bar_width)
+                if ex > sx:
+                    rects.append((sx, 0, ex, bh))
+                pos += seg_w + gap
+        else:
+            rects = [(0, 0, bar_width, bh)]
+
+        def draw_shape(d: ImageDraw.ImageDraw, box, **kw) -> None:  # noqa: ANN001
             if radius > 0:
-                fill_mask = PilImage.new("L", (bar_width, bh), 0)
-                fill_draw = ImageDraw.Draw(fill_mask)
-                fill_draw.rounded_rectangle(
-                    (0, 0, bar_width, bh),
-                    radius=radius,
-                    fill=255,
-                )
-                main.paste(grad_img, (0, 0), fill_mask)
+                d.rounded_rectangle(box, radius=radius, **kw)
             else:
-                main.paste(grad_img, (0, 0))
-            if outline:
+                d.rectangle(box, **kw)
+
+        outline_is_gradient = isinstance(outline, Gradient)
+        solid_outline = None if outline_is_gradient else outline
+
+        if isinstance(fill, Gradient):
+            fill_mask = PilImage.new("L", (bw, bh), 0)
+            fill_draw = ImageDraw.Draw(fill_mask)
+            for r in rects:
+                draw_shape(fill_draw, r, fill=255)
+            grad_img = fill.render(bw, bh)
+            main.paste(grad_img, (0, 0), fill_mask)
+            if solid_outline:
                 main_draw = ImageDraw.Draw(main)
-                if radius <= 0:
-                    main_draw.rectangle(
-                        (0, 0, bar_width, bh),
-                        outline=outline,
-                        width=stroke_width,
-                    )
-                else:
-                    main_draw.rounded_rectangle(
-                        (0, 0, bar_width, bh),
-                        radius=radius,
-                        outline=outline,
+                for r in rects:
+                    draw_shape(
+                        main_draw,
+                        r,
+                        outline=solid_outline,
                         width=stroke_width,
                     )
         else:
             main_draw = ImageDraw.Draw(main)
-            if radius <= 0:
-                main_draw.rectangle(
-                    (0, 0, bar_width, bh),
+            for r in rects:
+                draw_shape(
+                    main_draw,
+                    r,
                     fill=fill,
-                    outline=outline,
+                    outline=solid_outline,
                     width=stroke_width,
                 )
-            else:
-                main_draw.rounded_rectangle(
-                    (0, 0, bar_width, bh),
-                    radius=radius,
-                    fill=fill,
-                    outline=outline,
-                    width=stroke_width,
-                )
+
+        if outline_is_gradient and bar_width > 0:
+            outline_mask = PilImage.new("L", (bw, bh), 0)
+            outline_draw = ImageDraw.Draw(outline_mask)
+            for r in rects:
+                draw_shape(outline_draw, r, outline=255, width=stroke_width)
+            outline_grad = outline.render(bw, bh)
+            main.paste(outline_grad, (0, 0), outline_mask)
 
         mask = PilImage.new("L", (bw, bh), 0)
         mask_draw = ImageDraw.Draw(mask)
@@ -792,6 +941,22 @@ class Editor:
         )
 
         final = PilImage.composite(main, bg, mask)
+
+        if show_percentage:
+            label_font = text_font
+            if label_font is None:
+                label_font = Font.poppins(size=max(int(bh * 0.6), 1))
+            if isinstance(label_font, Font):
+                label_font = label_font.font
+            final_draw = ImageDraw.Draw(final)
+            final_draw.text(
+                (bw / 2, bh / 2),
+                f"{int(percentage)}%",
+                fill=text_color,
+                font=label_font,
+                anchor="mm",
+            )
+
         _ = self.paste(final, position)
 
         main.close()
@@ -809,8 +974,14 @@ class Editor:
         percentage: float,
         fill: Color | Gradient | None = None,
         color: Color | Gradient | None = None,
+        outline: Color | Gradient | None = None,
         stroke_width: int = 1,
         radius: int | None = None,
+        *,
+        segments: int = 0,
+        show_percentage: bool = False,
+        text_font: ImageFont.FreeTypeFont | Font | None = None,
+        text_color: Color = "white",
     ) -> Editor:
         """
         Draw a rounded bar.
@@ -829,10 +1000,21 @@ class Editor:
             Fill color or gradient, by default None
         color : Color or Gradient, optional
             Alias of color, by default None
+        outline : Color or Gradient, optional
+            Outline color or gradient, by default None
         stroke_width : float, optional
             Stroke width, by default 1
         radius : int, optional
             Corner radius. Defaults to height//2 (fully rounded).
+        segments : int, optional
+            When > 0, split the filled portion into this many chunks, by
+            default 0
+        show_percentage : bool, optional
+            Draw the integer percentage centered on the bar, by default False
+        text_font : ImageFont.FreeTypeFont | Font, optional
+            Font for the percentage text. Defaults to Poppins.
+        text_color : Color, optional
+            Color of the percentage text, by default "white"
 
         """
         if color:
@@ -844,8 +1026,13 @@ class Editor:
             height,
             percentage=int(percentage),
             fill=fill,
+            outline=outline,
             stroke_width=stroke_width,
             radius=radius if radius is not None else int(height // 2),
+            segments=segments,
+            show_percentage=show_percentage,
+            text_font=text_font,
+            text_color=text_color,
         )
 
     def ellipse(
@@ -961,6 +1148,395 @@ class Editor:
 
         return self
 
+    def _draw_polygon_shape(
+        self,
+        points: list[tuple[float, float]],
+        fill: Color | Gradient | None,
+        outline: Color | None,
+        stroke_width: int,
+    ) -> Editor:
+        """Draw a polygon from points supporting Color or Gradient fill."""
+        if isinstance(fill, Gradient):
+            xs = [p[0] for p in points]
+            ys = [p[1] for p in points]
+            x1, y1 = min(xs), min(ys)
+            x2, y2 = max(xs), max(ys)
+            offset_coords = [(p[0] - x1, p[1] - y1) for p in points]
+            self._apply_gradient_fill(
+                x1,
+                y1,
+                x2,
+                y2,
+                fill,
+                lambda d, w, h: d.polygon(offset_coords, fill=255),  # noqa: ARG005
+            )
+            if outline:
+                draw = ImageDraw.Draw(self.image)
+                draw.polygon(points, outline=outline, width=stroke_width)
+            return self
+
+        draw = ImageDraw.Draw(self.image)
+        draw.polygon(points, fill=fill, outline=outline, width=stroke_width)
+        return self
+
+    def regular_polygon(
+        self,
+        center: tuple[float, float],
+        sides: int,
+        radius: float,
+        rotation: float = 0,
+        fill: Color | Gradient | None = None,
+        color: Color | Gradient | None = None,
+        outline: Color | None = None,
+        stroke_width: int = 1,
+    ) -> Editor:
+        """
+        Draw a regular n-sided polygon.
+
+        Parameters
+        ----------
+        center : tuple[float, float]
+            Center coordinates (x, y)
+        sides : int
+            Number of sides
+        radius : float
+            Circumscribed radius
+        rotation : float, optional
+            Rotation in degrees, by default 0
+        fill : Color or Gradient, optional
+            Fill color or gradient, by default None
+        color : Color or Gradient, optional
+            Alias of fill, by default None
+        outline : Color, optional
+            Outline color, by default None
+        stroke_width : int, optional
+            Stroke width, by default 1
+
+        """
+        if color:
+            fill = color
+
+        cx, cy = center
+        base = math.radians(rotation - 90)
+        points = [
+            (
+                cx + radius * math.cos(base + 2 * math.pi * i / sides),
+                cy + radius * math.sin(base + 2 * math.pi * i / sides),
+            )
+            for i in range(sides)
+        ]
+        return self._draw_polygon_shape(points, fill, outline, stroke_width)
+
+    def star(
+        self,
+        center: tuple[float, float],
+        points: int,
+        outer_radius: float,
+        inner_radius: float,
+        rotation: float = 0,
+        fill: Color | Gradient | None = None,
+        color: Color | Gradient | None = None,
+        outline: Color | None = None,
+        stroke_width: int = 1,
+    ) -> Editor:
+        """
+        Draw a star polygon.
+
+        Parameters
+        ----------
+        center : tuple[float, float]
+            Center coordinates (x, y)
+        points : int
+            Number of star points
+        outer_radius : float
+            Radius of outer vertices
+        inner_radius : float
+            Radius of inner vertices
+        rotation : float, optional
+            Rotation in degrees, by default 0
+        fill : Color or Gradient, optional
+            Fill color or gradient, by default None
+        color : Color or Gradient, optional
+            Alias of fill, by default None
+        outline : Color, optional
+            Outline color, by default None
+        stroke_width : int, optional
+            Stroke width, by default 1
+
+        """
+        if color:
+            fill = color
+
+        cx, cy = center
+        base = math.radians(rotation - 90)
+        verts = []
+        for i in range(points * 2):
+            r = outer_radius if i % 2 == 0 else inner_radius
+            ang = base + math.pi * i / points
+            verts.append((cx + r * math.cos(ang), cy + r * math.sin(ang)))
+        return self._draw_polygon_shape(verts, fill, outline, stroke_width)
+
+    def triangle(
+        self,
+        position: tuple[float, float],
+        width: float,
+        height: float,
+        fill: Color | Gradient | None = None,
+        color: Color | Gradient | None = None,
+        outline: Color | None = None,
+        stroke_width: int = 1,
+    ) -> Editor:
+        """
+        Draw an upward triangle within the given bounding box.
+
+        Parameters
+        ----------
+        position : tuple[float, float]
+            Top-left of the bounding box
+        width : float
+            Width of the bounding box
+        height : float
+            Height of the bounding box
+        fill : Color or Gradient, optional
+            Fill color or gradient, by default None
+        color : Color or Gradient, optional
+            Alias of fill, by default None
+        outline : Color, optional
+            Outline color, by default None
+        stroke_width : int, optional
+            Stroke width, by default 1
+
+        """
+        if color:
+            fill = color
+
+        x, y = position
+        points = [
+            (x + width / 2, y),
+            (x, y + height),
+            (x + width, y + height),
+        ]
+        return self._draw_polygon_shape(points, fill, outline, stroke_width)
+
+    def squircle(
+        self,
+        position: tuple[float, float],
+        width: float,
+        height: float,
+        radius_ratio: float = 0.4,
+        fill: Color | Gradient | None = None,
+        color: Color | Gradient | None = None,
+        outline: Color | None = None,
+        stroke_width: int = 1,
+    ) -> Editor:
+        """
+        Draw a squircle (superellipse / iOS rounded square).
+
+        Parameters
+        ----------
+        position : tuple[float, float]
+            Top-left of the bounding box
+        width : float
+            Width of the bounding box
+        height : float
+            Height of the bounding box
+        radius_ratio : float, optional
+            Roundness ratio (higher = rounder), by default 0.4
+        fill : Color or Gradient, optional
+            Fill color or gradient, by default None
+        color : Color or Gradient, optional
+            Alias of fill, by default None
+        outline : Color, optional
+            Outline color, by default None
+        stroke_width : int, optional
+            Stroke width, by default 1
+
+        """
+        if color:
+            fill = color
+
+        x, y = position
+        w = int(width)
+        h = int(height)
+        if w <= 0 or h <= 0:
+            return self
+
+        n = max(2.0, 2.0 / max(radius_ratio, 0.01))
+        mask = self._superellipse_mask(w, h, n)
+
+        if isinstance(fill, Gradient):
+            grad = fill.render(w, h)
+            self.image.paste(grad, (int(x), int(y)), mask)
+        elif fill:
+            layer = PilImage.new("RGBA", (w, h), fill)
+            self.image.paste(layer, (int(x), int(y)), mask)
+
+        if outline:
+            inner = self._superellipse_mask(w, h, n, inset=float(stroke_width))
+            ring = ImageChops.subtract(mask, inner)
+            oc = PilImage.new("RGBA", (w, h), outline)
+            self.image.paste(oc, (int(x), int(y)), ring)
+
+        return self
+
+    def _superellipse_mask(
+        self,
+        w: int,
+        h: int,
+        n: float,
+        inset: float = 0.0,
+    ) -> Image:
+        """Return an L-mode superellipse mask of size (w, h)."""
+        mask = PilImage.new("L", (w, h), 0)
+        pixels = mask.load()
+        if pixels is None:  # pragma: no cover
+            return mask
+        a = w / 2 - inset
+        b = h / 2 - inset
+        if a <= 0 or b <= 0:
+            return mask
+        cx = w / 2
+        cy = h / 2
+        for yy in range(h):
+            ny = abs((yy + 0.5 - cy) / b) ** n
+            if ny > 1:
+                continue
+            for xx in range(w):
+                nx = abs((xx + 0.5 - cx) / a) ** n
+                if nx + ny <= 1:
+                    pixels[xx, yy] = 255
+        return mask
+
+    def speech_bubble(
+        self,
+        position: tuple[float, float],
+        width: float,
+        height: float,
+        tail: str = "bottom-left",
+        radius: int = 12,
+        fill: Color | Gradient | None = None,
+        color: Color | Gradient | None = None,
+        outline: Color | None = None,
+        stroke_width: int = 1,
+    ) -> Editor:
+        """
+        Draw a rounded speech bubble with a triangular tail.
+
+        Parameters
+        ----------
+        position : tuple[float, float]
+            Top-left of the bubble body
+        width : float
+            Width of the bubble body
+        height : float
+            Height of the bubble body
+        tail : str, optional
+            Side of the tail: "bottom-left", "bottom-right", "bottom",
+            "top-left", "top-right", "top", "left", "right", by default
+            "bottom-left"
+        radius : int, optional
+            Corner radius, by default 12
+        fill : Color or Gradient, optional
+            Fill color or gradient, by default None
+        color : Color or Gradient, optional
+            Alias of fill, by default None
+        outline : Color, optional
+            Outline color, by default None
+        stroke_width : int, optional
+            Stroke width, by default 1
+
+        """
+        if color:
+            fill = color
+
+        x, y = position
+        x2 = x + width
+        y2 = y + height
+        t = max(radius, 10)
+        body = (x, y, x2, y2)
+        tails = {
+            "bottom-left": [
+                (x + radius, y2),
+                (x + radius + t, y2),
+                (x + radius, y2 + t),
+            ],
+            "bottom-right": [
+                (x2 - radius - t, y2),
+                (x2 - radius, y2),
+                (x2 - radius, y2 + t),
+            ],
+            "bottom": [
+                (x + width / 2 - t / 2, y2),
+                (x + width / 2 + t / 2, y2),
+                (x + width / 2, y2 + t),
+            ],
+            "top-left": [(x + radius, y), (x + radius + t, y), (x + radius, y - t)],
+            "top-right": [(x2 - radius - t, y), (x2 - radius, y), (x2 - radius, y - t)],
+            "top": [
+                (x + width / 2 - t / 2, y),
+                (x + width / 2 + t / 2, y),
+                (x + width / 2, y - t),
+            ],
+            "left": [
+                (x, y + height / 2 - t / 2),
+                (x, y + height / 2 + t / 2),
+                (x - t, y + height / 2),
+            ],
+            "right": [
+                (x2, y + height / 2 - t / 2),
+                (x2, y + height / 2 + t / 2),
+                (x2 + t, y + height / 2),
+            ],
+        }
+        tail_points = tails.get(tail, tails["bottom-left"])
+
+        all_x = [body[0], body[2], *[p[0] for p in tail_points]]
+        all_y = [body[1], body[3], *[p[1] for p in tail_points]]
+        minx, miny = int(min(all_x)), int(min(all_y))
+        maxx, maxy = int(math.ceil(max(all_x))), int(math.ceil(max(all_y)))
+        bw = maxx - minx
+        bh = maxy - miny
+
+        if isinstance(fill, Gradient) and bw > 0 and bh > 0:
+            mask = PilImage.new("L", (bw, bh), 0)
+            mdraw = ImageDraw.Draw(mask)
+            mdraw.rounded_rectangle(
+                (body[0] - minx, body[1] - miny, body[2] - minx, body[3] - miny),
+                radius=radius,
+                fill=255,
+            )
+            mdraw.polygon(
+                [(p[0] - minx, p[1] - miny) for p in tail_points],
+                fill=255,
+            )
+            grad = fill.render(bw, bh)
+            self.image.paste(grad, (minx, miny), mask)
+            if outline:
+                draw = ImageDraw.Draw(self.image)
+                draw.rounded_rectangle(
+                    body,
+                    radius=radius,
+                    outline=outline,
+                    width=stroke_width,
+                )
+                draw.polygon(tail_points, outline=outline, width=stroke_width)
+            return self
+
+        layer = PilImage.new("RGBA", self.image.size, (0, 0, 0, 0))
+        draw = ImageDraw.Draw(layer)
+        draw.rounded_rectangle(body, radius=radius, fill=fill)
+        draw.polygon(tail_points, fill=fill)
+        if outline:
+            draw.rounded_rectangle(
+                body,
+                radius=radius,
+                outline=outline,
+                width=stroke_width,
+            )
+            draw.polygon(tail_points, outline=outline, width=stroke_width)
+        self.image = PilImage.alpha_composite(self.image, layer)
+        return self
+
     def arc(
         self,
         position: tuple[float, float],
@@ -1051,7 +1627,28 @@ class Editor:
             Additional parameters for PIL Image.save
 
         """
-        self.image.save(fp, file_format, **params)
+        fmt = file_format
+        if fmt is None and isinstance(fp, (str, Path)):
+            ext = Path(fp).suffix.lower().lstrip(".")
+            ext_map = {
+                "jpg": "JPEG",
+                "jpeg": "JPEG",
+                "png": "PNG",
+                "gif": "GIF",
+                "bmp": "BMP",
+                "webp": "WEBP",
+                "tiff": "TIFF",
+                "tif": "TIFF",
+            }
+            fmt = ext_map.get(ext)
+
+        image = self.image
+        if fmt and fmt.upper() in ("JPEG", "JPG") and image.mode == "RGBA":
+            background = PilImage.new("RGB", image.size, (255, 255, 255))
+            background.paste(image, mask=image.split()[3])
+            image = background
+
+        image.save(fp, fmt, **params)
 
     @classmethod
     def open(cls, fp: str | Path | BytesIO) -> Editor:
@@ -1401,6 +1998,14 @@ class Editor:
         y = (self.image.height - (bbox[3] - bbox[1])) / 2 + y_offset
         draw.text((x, y), text, color, font=font)
 
+        drawn = draw.textbbox((x, y), text, font=font)
+        self.last_text_bbox = (
+            int(drawn[0]),
+            int(drawn[1]),
+            int(drawn[2]),
+            int(drawn[3]),
+        )
+
         return self
 
     def compose(
@@ -1460,6 +2065,174 @@ class Editor:
         """Apply effect to image. Accepts any Effect subclass instance."""
         self.image = effect.apply(self.image)
         return self
+
+    def gradient_text(
+        self,
+        position: tuple[float, float],
+        text: str,
+        font: ImageFont.FreeTypeFont | Font | None,
+        gradient: Gradient,
+        *,
+        align: Literal["left", "center", "right"] = "left",
+        anchor: str | None = None,
+        stroke_width: int | None = None,
+        stroke_fill: Color = "black",
+    ) -> Editor:
+        """
+        Draw text with glyphs filled by a gradient.
+
+        Parameters
+        ----------
+        position : tuple[float, float]
+            Position to draw text
+        text : str
+            Text to draw
+        font : ImageFont.FreeTypeFont | Font | None
+            Font used for text
+        gradient : Gradient
+            Gradient used to fill the glyphs
+        align : Literal["left", "center", "right"], optional
+            Align text, by default "left"
+        anchor : str, optional
+            Pillow text anchor. Overrides align if set.
+        stroke_width : int, optional
+            Stroke width, by default None
+        stroke_fill : Color, optional
+            Stroke color, by default "black"
+
+        """
+        if isinstance(font, Font):
+            font = font.font
+
+        anchors = {"left": "lt", "center": "mt", "right": "rt"}
+        effective_anchor = anchor if anchor else anchors[align]
+
+        draw = ImageDraw.Draw(self.image)
+        bbox = draw.textbbox(
+            position,
+            text,
+            font=font,
+            anchor=effective_anchor,
+            stroke_width=stroke_width or 0,
+        )
+        self.last_text_bbox = (
+            int(bbox[0]),
+            int(bbox[1]),
+            int(bbox[2]),
+            int(bbox[3]),
+        )
+        left, top, right, bottom = self.last_text_bbox
+        w = max(right - left, 1)
+        h = max(bottom - top, 1)
+
+        if stroke_width:
+            draw.text(
+                position,
+                text,
+                fill=stroke_fill,
+                font=font,
+                anchor=effective_anchor,
+                stroke_width=stroke_width,
+                stroke_fill=stroke_fill,
+            )
+
+        mask = PilImage.new("L", (w, h), 0)
+        mask_draw = ImageDraw.Draw(mask)
+        mask_draw.text(
+            (position[0] - left, position[1] - top),
+            text,
+            fill=255,
+            font=font,
+            anchor=effective_anchor,
+        )
+        grad_img = gradient.render(w, h)
+        self.image.paste(grad_img, (left, top), mask)
+
+        return self
+
+    def pattern(
+        self,
+        tile: Image | Editor | Canvas,
+        *,
+        spacing: tuple[int, int] = (0, 0),
+        offset: tuple[int, int] = (0, 0),
+    ) -> Editor:
+        """
+        Tile an image across the whole editor image.
+
+        Parameters
+        ----------
+        tile : Image | Editor | Canvas
+            Tile image to repeat
+        spacing : tuple[int, int], optional
+            Gap (x, y) between tiles, by default (0, 0)
+        offset : tuple[int, int], optional
+            Starting offset (x, y), by default (0, 0)
+
+        """
+        tile_img = tile.image if isinstance(tile, (Editor, Canvas)) else tile
+        tile_img = tile_img.convert("RGBA")
+        tw, th = tile_img.size
+        step_x = tw + spacing[0]
+        step_y = th + spacing[1]
+        if step_x <= 0 or th <= 0 or step_y <= 0 or tw <= 0:
+            return self
+
+        layer = PilImage.new("RGBA", self.image.size, (0, 0, 0, 0))
+
+        start_x = offset[0]
+        while start_x > 0:
+            start_x -= step_x
+        start_y = offset[1]
+        while start_y > 0:
+            start_y -= step_y
+
+        y = start_y
+        while y < self.image.height:
+            x = start_x
+            while x < self.image.width:
+                layer.paste(tile_img, (x, y), tile_img)
+                x += step_x
+            y += step_y
+
+        self.image = PilImage.alpha_composite(self.image, layer)
+        layer.close()
+        return self
+
+    def copy(self) -> Editor:
+        """
+        Return a new Editor wrapping a deep copy of this image.
+
+        Returns
+        -------
+        Editor
+            New Editor with an independent copy of the image.
+
+        """
+        return Editor(self.image.copy())
+
+    @classmethod
+    def from_url(cls, url: str, **kwargs: Any) -> Editor:
+        """
+        Create an Editor from an image URL.
+
+        Parameters
+        ----------
+        url : str
+            Image URL to load
+        **kwargs : Any
+            Extra arguments passed to :func:`easy_pil.utils.load_image`
+
+        Returns
+        -------
+        Editor
+            Editor wrapping the downloaded image.
+
+        """
+        from .utils import load_image
+
+        image = load_image(url, **kwargs)
+        return cls(image)
 
     def _apply_gradient_fill(
         self,

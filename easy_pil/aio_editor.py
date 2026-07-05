@@ -67,3 +67,57 @@ class AioEditor:
             await asyncio.get_running_loop().run_in_executor(None, func)
 
         return editor
+
+    @staticmethod
+    async def gather(
+        sources: Sequence[Image | str | BytesIO | Editor | Canvas | Path],
+    ) -> list[Editor]:
+        """
+        Build one Editor per source concurrently.
+
+        Each (blocking) Editor construction, including any image loading, is run
+        in the default executor so that many sources can be prepared in
+        parallel. This is useful, for example, to load and prepare many Discord
+        avatars at once.
+
+        Parameters
+        ----------
+        sources : Sequence[Image | str | BytesIO | Editor | Canvas | Path]
+            The image sources to build Editors from.
+
+        Returns
+        -------
+        list[Editor]
+            One Editor per source, in the same order as ``sources``.
+
+        Notes
+        -----
+        Exceptions raised while constructing any Editor propagate to the
+        caller; the first such exception is raised by ``asyncio.gather``.
+
+        """
+        loop = asyncio.get_running_loop()
+        return await asyncio.gather(
+            *(loop.run_in_executor(None, Editor, src) for src in sources),
+        )
+
+    @classmethod
+    async def from_url(cls, url: str) -> AioEditor:
+        """
+        Asynchronously load an image from a URL and wrap it in an AioEditor.
+
+        Parameters
+        ----------
+        url : str
+            The URL to load the image from.
+
+        Returns
+        -------
+        AioEditor
+            An AioEditor wrapping the loaded image.
+
+        """
+        from .utils import load_image_async
+
+        image = await load_image_async(url)
+        return cls(image)

@@ -7,9 +7,9 @@ from abc import ABC, abstractmethod
 
 from PIL import Image as PilImage
 from PIL import ImageDraw, ImageFilter, ImageOps, ImageStat
-from PIL.ImageColor import getrgb
 
 from .canvas import Color
+from .color import to_rgb, to_rgba
 
 
 class Effect(ABC):
@@ -63,16 +63,7 @@ class Vignette(Effect):
 
         mask = ImageOps.invert(mask)
 
-        color_rgba: tuple[int, int, int, int]
-        if isinstance(self.color, tuple):
-            if len(self.color) == 4:
-                color_rgba = self.color  # type: ignore[assignment]
-            elif len(self.color) == 3:
-                color_rgba = (*self.color, 255)  # type: ignore[misc]
-            else:
-                color_rgba = (0, 0, 0, 255)
-        else:
-            color_rgba = (0, 0, 0, 255)
+        color_rgba = to_rgba(self.color)
 
         color_layer = PilImage.new("RGBA", (w, h), color_rgba)
         color_layer.putalpha(mask)
@@ -104,18 +95,8 @@ class ColorOverlay(Effect):
     def apply(self, image: PilImage.Image) -> PilImage.Image:
         w, h = image.size
 
-        if isinstance(self.color, tuple):
-            if len(self.color) == 4:
-                overlay = PilImage.new("RGBA", (w, h), self.color)
-            else:
-                a = max(0, min(255, int(self.alpha * 255)))
-                overlay = PilImage.new("RGBA", (w, h), (*self.color, a))  # type: ignore[misc]
-        else:
-            overlay = PilImage.new("RGBA", (w, h), (0, 0, 0, 0))
-            draw = ImageDraw.Draw(overlay)
-            draw.rectangle([(0, 0), (w, h)], fill=self.color)
-            if self.alpha < 1.0:
-                overlay.putalpha(int(self.alpha * 255))
+        rgba = to_rgba(self.color, alpha=int(self.alpha * 255))
+        overlay = PilImage.new("RGBA", (w, h), rgba)
 
         result = image.convert("RGBA")
         return PilImage.alpha_composite(result, overlay)
@@ -159,15 +140,7 @@ class DropShadow(Effect):
 
         shadow = PilImage.new("RGBA", (w, h), (0, 0, 0, 0))
 
-        if isinstance(self.color, tuple):
-            if len(self.color) == 4:
-                color_rgba = self.color
-            elif len(self.color) == 3:
-                color_rgba = (*self.color, int(self.alpha * 255))  # type: ignore[misc]
-            else:
-                color_rgba = (0, 0, 0, int(self.alpha * 255))
-        else:
-            color_rgba = (0, 0, 0, int(self.alpha * 255))
+        color_rgba = to_rgba(self.color, alpha=int(self.alpha * 255))
 
         shadow.putalpha(alpha_channel.point(lambda x: int(x * (color_rgba[3] / 255))))
 
@@ -215,16 +188,7 @@ class Glow(Effect):
         alpha_channel = image.convert("RGBA").split()[3]
         w, h = image.size
 
-        color_rgba: tuple[int, int, int, int]
-        if isinstance(self.color, tuple):
-            if len(self.color) == 4:
-                color_rgba = self.color
-            elif len(self.color) == 3:
-                color_rgba = (*self.color, int(self.alpha * 255))  # type: ignore[misc]
-            else:
-                color_rgba = (255, 255, 255, int(self.alpha * 255))
-        else:
-            color_rgba = (255, 255, 255, int(self.alpha * 255))
+        color_rgba = to_rgba(self.color, alpha=int(self.alpha * 255))
 
         color_layer = PilImage.new("RGBA", (w, h), color_rgba)
         color_layer.putalpha(
@@ -273,14 +237,7 @@ class Gradient(Effect):
 
     def apply(self, image: PilImage.Image) -> PilImage.Image:
         w, h = image.size
-        parsed: list[tuple[int, int, int]] = []
-        for c in self.colors:
-            if isinstance(c, str):
-                parsed.append(getrgb(c)[:3])
-            elif isinstance(c, int):
-                parsed.append((c >> 16, (c >> 8) & 0xFF, c & 0xFF))
-            else:
-                parsed.append(tuple(c[:3]))  # type: ignore[arg-type]
+        parsed: list[tuple[int, int, int]] = [to_rgb(c) for c in self.colors]
 
         gradient = PilImage.new("RGBA", (w, h), (0, 0, 0, 0))
 
@@ -537,18 +494,10 @@ class Duotone(Effect):
         self.dark_color = dark_color
         self.light_color = light_color
 
-    def _parse(self, color: Color) -> tuple[int, int, int]:
-        if isinstance(color, str):
-            c = getrgb(color)
-            return (c[0], c[1], c[2])
-        if isinstance(color, int):
-            return ((color >> 16) & 0xFF, (color >> 8) & 0xFF, color & 0xFF)
-        return tuple(color[:3])  # type: ignore[arg-type]
-
     def apply(self, image: PilImage.Image) -> PilImage.Image:
         grey = image.convert("L")
-        dark = self._parse(self.dark_color)
-        light = self._parse(self.light_color)
+        dark = to_rgb(self.dark_color)
+        light = to_rgb(self.light_color)
         result = ImageOps.colorize(grey, black=dark, white=light)
         return result.convert("RGBA")
 
@@ -643,19 +592,12 @@ class EdgeGlow(Effect):
         self.color = color
         self.intensity = min(1.0, max(0.0, intensity))
 
-    def _parse(self, color: Color) -> tuple[int, int, int]:
-        if isinstance(color, str):
-            return getrgb(color)[:3]
-        if isinstance(color, int):
-            return ((color >> 16) & 0xFF, (color >> 8) & 0xFF, color & 0xFF)
-        return tuple(color[:3])  # type: ignore[arg-type]
-
     def apply(self, image: PilImage.Image) -> PilImage.Image:
         img = image.convert("RGBA")
         grey = img.convert("L")
         edges = grey.filter(ImageFilter.FIND_EDGES)
 
-        c = self._parse(self.color)
+        c = to_rgb(self.color)
         colored = ImageOps.colorize(edges, black=(0, 0, 0), white=c).convert("RGBA")
 
         return PilImage.blend(img, colored, self.intensity)
