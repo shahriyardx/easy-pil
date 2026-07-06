@@ -7,6 +7,7 @@ from io import BytesIO
 from pathlib import Path
 from typing import Any, Literal
 
+import numpy as np
 from PIL import Image as PilImage
 from PIL import (
     ImageChops,
@@ -18,6 +19,7 @@ from PIL import (
 )
 from PIL.Image import Image
 
+from ._nputil import as_rgba, from_array
 from .canvas import Canvas, Color
 from .effect import Effect
 from .font import Font
@@ -106,6 +108,16 @@ class Editor:
         """Close the image."""
         self.image.close()
 
+    def _replace(self, new: Image) -> None:
+        """Swap in a new owned buffer, closing the old owned one."""
+        old = self.image
+        self.image = new
+        if old is not new:
+            try:
+                old.close()
+            except Exception:  # noqa: BLE001, S110
+                pass
+
     def resize(self, size: tuple[int, int], *, crop: bool = False) -> Editor:
         """
         Resize image.
@@ -119,7 +131,7 @@ class Editor:
 
         """
         if not crop:
-            self.image = self.image.resize(size, PilImage.Resampling.LANCZOS)
+            self._replace(self.image.resize(size, PilImage.Resampling.LANCZOS))
         else:
             width, height = self.image.size
             ideal_width, ideal_height = size
@@ -136,9 +148,11 @@ class Editor:
                 offset = int((height - new_height) / 2)
                 resize = (0, offset, width, height - offset)
 
-            self.image = self.image.crop(resize).resize(
-                (ideal_width, ideal_height),
-                PilImage.Resampling.LANCZOS,
+            self._replace(
+                self.image.crop(resize).resize(
+                    (ideal_width, ideal_height),
+                    PilImage.Resampling.LANCZOS,
+                ),
             )
 
         return self
@@ -177,7 +191,7 @@ class Editor:
             fill="black",
         )
         holder.paste(self.image, (0, 0))
-        self.image = PilImage.composite(holder, background, mask)
+        self._replace(PilImage.composite(holder, background, mask))
 
         background.close()
         holder.close()
@@ -206,7 +220,7 @@ class Editor:
         ellipse_size = tuple(i - 1 for i in self.image.size)
         mask_draw.ellipse((0, 0, *ellipse_size), fill="black")
         holder.paste(self.image, (0, 0))
-        self.image = PilImage.composite(holder, background, mask)
+        self._replace(PilImage.composite(holder, background, mask))
 
         background.close()
         holder.close()
@@ -226,7 +240,7 @@ class Editor:
             Expand while rotating, by default False
 
         """
-        self.image = self.image.rotate(deg, expand=expand)
+        self._replace(self.image.rotate(deg, expand=expand))
         return self
 
     def blur(
@@ -246,10 +260,10 @@ class Editor:
 
         """
         if mode == "box":
-            self.image = self.image.filter(ImageFilter.BoxBlur(radius=amount))
+            self._replace(self.image.filter(ImageFilter.BoxBlur(radius=amount)))
         elif mode == "gaussian":
-            self.image = self.image.filter(
-                ImageFilter.GaussianBlur(radius=amount),
+            self._replace(
+                self.image.filter(ImageFilter.GaussianBlur(radius=amount)),
             )
 
         return self
@@ -280,9 +294,9 @@ class Editor:
             pil_image = Editor(pil_image).resize(self.image.size, crop=True).image
 
         if on_top:
-            self.image = PilImage.blend(self.image, pil_image, alpha=alpha)
+            self._replace(PilImage.blend(self.image, pil_image, alpha=alpha))
         else:
-            self.image = PilImage.blend(pil_image, self.image, alpha=alpha)
+            self._replace(PilImage.blend(pil_image, self.image, alpha=alpha))
 
         return self
 
@@ -348,14 +362,20 @@ class Editor:
             position = self._resolve_anchor(position, pil_image.size)
 
         if opacity < 1.0:
-            pil_image = pil_image.convert("RGBA").copy()
-            alpha = pil_image.getchannel("A").point(
+            # as_rgba returns a fresh image only when a convert happened; if it
+            # handed back the caller's own RGBA image, copy so putalpha does not
+            # mutate it.
+            rgba = as_rgba(pil_image)
+            if rgba is pil_image:
+                rgba = rgba.copy()
+            alpha = rgba.getchannel("A").point(
                 lambda a: int(a * opacity),
             )
-            pil_image.putalpha(alpha)
+            rgba.putalpha(alpha)
+            pil_image = rgba
 
         blank.paste(pil_image, position)
-        self.image = PilImage.alpha_composite(self.image, blank)
+        self._replace(PilImage.alpha_composite(self.image, blank))
 
         blank.close()
 
@@ -1387,25 +1407,21 @@ class Editor:
         inset: float = 0.0,
     ) -> Image:
         """Return an L-mode superellipse mask of size (w, h)."""
-        mask = PilImage.new("L", (w, h), 0)
-        pixels = mask.load()
-        if pixels is None:  # pragma: no cover
-            return mask
         a = w / 2 - inset
         b = h / 2 - inset
         if a <= 0 or b <= 0:
-            return mask
+            return PilImage.new("L", (w, h), 0)
         cx = w / 2
         cy = h / 2
-        for yy in range(h):
-            ny = abs((yy + 0.5 - cy) / b) ** n
-            if ny > 1:
-                continue
-            for xx in range(w):
-                nx = abs((xx + 0.5 - cx) / a) ** n
-                if nx + ny <= 1:
-                    pixels[xx, yy] = 255
-        return mask
+        ys, xs = np.meshgrid(
+            np.arange(h, dtype=np.float64),
+            np.arange(w, dtype=np.float64),
+            indexing="ij",
+        )
+        nx = np.abs((xs + 0.5 - cx) / a) ** n
+        ny = np.abs((ys + 0.5 - cy) / b) ** n
+        mask = ((nx + ny) <= 1).astype(np.uint8) * 255
+        return from_array(mask, "L")
 
     def speech_bubble(
         self,
@@ -1497,20 +1513,21 @@ class Editor:
         bw = maxx - minx
         bh = maxy - miny
 
-        if isinstance(fill, Gradient) and bw > 0 and bh > 0:
-            mask = PilImage.new("L", (bw, bh), 0)
-            mdraw = ImageDraw.Draw(mask)
-            mdraw.rounded_rectangle(
-                (body[0] - minx, body[1] - miny, body[2] - minx, body[3] - miny),
-                radius=radius,
-                fill=255,
-            )
-            mdraw.polygon(
-                [(p[0] - minx, p[1] - miny) for p in tail_points],
-                fill=255,
-            )
-            grad = fill.render(bw, bh)
-            self.image.paste(grad, (minx, miny), mask)
+        if isinstance(fill, Gradient):
+            if bw > 0 and bh > 0:
+                mask = PilImage.new("L", (bw, bh), 0)
+                mdraw = ImageDraw.Draw(mask)
+                mdraw.rounded_rectangle(
+                    (body[0] - minx, body[1] - miny, body[2] - minx, body[3] - miny),
+                    radius=radius,
+                    fill=255,
+                )
+                mdraw.polygon(
+                    [(p[0] - minx, p[1] - miny) for p in tail_points],
+                    fill=255,
+                )
+                grad = fill.render(bw, bh)
+                self.image.paste(grad, (minx, miny), mask)
             if outline:
                 draw = ImageDraw.Draw(self.image)
                 draw.rounded_rectangle(
@@ -1534,7 +1551,7 @@ class Editor:
                 width=stroke_width,
             )
             draw.polygon(tail_points, outline=outline, width=stroke_width)
-        self.image = PilImage.alpha_composite(self.image, layer)
+        self._replace(PilImage.alpha_composite(self.image, layer))
         return self
 
     def arc(
@@ -1691,7 +1708,7 @@ class Editor:
             (left, upper, right, lower) pixel coordinates
 
         """
-        self.image = self.image.crop(box)
+        self._replace(self.image.crop(box))
         return self
 
     def thumbnail(self, size: tuple[int, int]) -> Editor:
@@ -1718,14 +1735,17 @@ class Editor:
 
         """
         if horizontal:
-            self.image = self.image.transpose(PilImage.Transpose.FLIP_LEFT_RIGHT)
+            self._replace(self.image.transpose(PilImage.Transpose.FLIP_LEFT_RIGHT))
         else:
-            self.image = self.image.transpose(PilImage.Transpose.FLIP_TOP_BOTTOM)
+            self._replace(self.image.transpose(PilImage.Transpose.FLIP_TOP_BOTTOM))
         return self
 
     def invert(self) -> Editor:
         """Invert image colors."""
-        self.image = ImageOps.invert(self.image.convert("RGB")).convert("RGBA")
+        # Kept as convert("RGB") -> invert -> convert("RGBA"): the RGB round
+        # trip resets alpha to fully opaque, which is the existing behavior;
+        # a numpy invert preserving the source alpha would change output.
+        self._replace(ImageOps.invert(self.image.convert("RGB")).convert("RGBA"))
         return self
 
     def mask(self, mask_image: Image | Editor, invert: bool = False) -> Editor:
@@ -1762,7 +1782,7 @@ class Editor:
             Contrast factor. 1.0 = original, >1 = more contrast, <1 = less.
 
         """
-        self.image = ImageEnhance.Contrast(self.image).enhance(factor)
+        self._replace(ImageEnhance.Contrast(self.image).enhance(factor))
         return self
 
     def brightness(self, factor: float = 1.0) -> Editor:
@@ -1775,7 +1795,7 @@ class Editor:
             Brightness factor. 1.0 = original, >1 = brighter, <1 = darker.
 
         """
-        self.image = ImageEnhance.Brightness(self.image).enhance(factor)
+        self._replace(ImageEnhance.Brightness(self.image).enhance(factor))
         return self
 
     def saturation(self, factor: float = 1.0) -> Editor:
@@ -1788,7 +1808,7 @@ class Editor:
             Saturation factor. 1.0 = original, >1 = more saturated, <1 = less.
 
         """
-        self.image = ImageEnhance.Color(self.image).enhance(factor)
+        self._replace(ImageEnhance.Color(self.image).enhance(factor))
         return self
 
     def line(
@@ -1884,7 +1904,7 @@ class Editor:
             (x - inner_radius, y - inner_radius, x + inner_radius, y + inner_radius),
             fill=(0, 0, 0, 0),
         )
-        self.image = PilImage.alpha_composite(self.image, layer)
+        self._replace(PilImage.alpha_composite(self.image, layer))
         return self
 
     def add_border(
@@ -1909,7 +1929,7 @@ class Editor:
         )
         bg = PilImage.new("RGBA", new_size, color)
         bg.paste(self.image, (width, width))
-        self.image = bg
+        self._replace(bg)
         return self
 
     def fit_text(
@@ -2055,7 +2075,7 @@ class Editor:
                 canvas.paste(img, (x, y), img)
                 x += img.width + spacing
 
-        self.image = canvas
+        self._replace(canvas)
         return self
 
     def effect(
@@ -2063,7 +2083,7 @@ class Editor:
         effect: Effect,
     ) -> Editor:
         """Apply effect to image. Accepts any Effect subclass instance."""
-        self.image = effect.apply(self.image)
+        self._replace(effect.apply(self.image))
         return self
 
     def gradient_text(
@@ -2195,7 +2215,7 @@ class Editor:
                 x += step_x
             y += step_y
 
-        self.image = PilImage.alpha_composite(self.image, layer)
+        self._replace(PilImage.alpha_composite(self.image, layer))
         layer.close()
         return self
 

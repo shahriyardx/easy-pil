@@ -91,6 +91,14 @@ Uses: `line` sparkline, area fill via masked `paste`, `Glow`, `regular_polygon` 
 
 ![crypto ticker](outputs/crypto_ticker.png)
 
+### 🌀 Animated GIF — `animated_gif.py`
+Builds a looping orbiting-orbs animation in memory, then uses `GifEditor` to
+stylise **every frame** with queued ops (saturation + Bloom). GifEditor replays
+the queue one decoded frame at a time, so memory stays bounded.
+Uses: `GifEditor`, queued `saturation` + `effect(Bloom)`, `Glow`, `paste`.
+
+![animated gif](outputs/animated_gif.gif)
+
 ---
 
 > All cards are built with the public `easy_pil` API. Swap the procedural avatars

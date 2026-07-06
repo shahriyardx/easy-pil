@@ -27,14 +27,14 @@ class TestEditor(unittest.TestCase):
     def test_from_path(self) -> None:
         """Tests editor from path."""
         editor = Editor(
-            Path.cwd() / "examples" / "assets" / "pfp.png",
+            Path(__file__).parent / "assets" / "sample.png",
         )
         assert isinstance(editor, Editor)
 
     def test_from_image(self) -> None:
         """Tests editor from image."""
         image = Image.open(
-            Path.cwd() / "examples" / "assets" / "pfp.png",
+            Path(__file__).parent / "assets" / "sample.png",
         )
         editor = Editor(image)
         assert isinstance(editor, Editor)
@@ -462,7 +462,7 @@ class TestEditor(unittest.TestCase):
 
     def test_open(self) -> None:
         """Tests editor open class method."""
-        path = Path.cwd() / "examples" / "assets" / "pfp.png"
+        path = Path(__file__).parent / "assets" / "sample.png"
         editor = Editor.open(path)
         assert isinstance(editor, Editor)
 

@@ -5,8 +5,11 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import Sequence, cast
 
+import numpy as np
 from PIL import Image as PilImage
 from PIL.ImageColor import getrgb
+
+from easy_pil._nputil import build_lut, from_array, lut_from_t
 
 ColorRGB = tuple[int, int, int]
 ColorRGBA = tuple[int, int, int, int]
@@ -74,33 +77,21 @@ class LinearGradient(Gradient):
         self.direction = direction
 
     def render(self, width: int, height: int) -> PilImage.Image:
-        img = PilImage.new("RGBA", (width, height))
-        pixels = img.load()
-        if pixels is None:  # pragma: no cover
-            msg = "Pixel access failed"
-            raise RuntimeError(msg)
-        wm = max(width - 1, 1)
-        hm = max(height - 1, 1)
+        lut = build_lut(self.colors)
+        xs = np.arange(width, dtype=np.float64)
+        ys = np.arange(height, dtype=np.float64)
 
         if self.direction == "vertical":
-            for y in range(height):
-                t = y / hm
-                c = self._color_at(t)
-                for x in range(width):
-                    pixels[x, y] = c
+            hm = max(height - 1, 1)
+            t = (ys / hm)[:, None] * np.ones((1, width))
         elif self.direction == "diagonal":
             denom = max(width + height - 2, 1)
-            for y in range(height):
-                for x in range(width):
-                    t = (x + y) / denom
-                    pixels[x, y] = self._color_at(t)
+            t = (xs[None, :] + ys[:, None]) / denom
         else:  # horizontal
-            for y in range(height):
-                for x in range(width):
-                    t = x / wm
-                    pixels[x, y] = self._color_at(t)
+            wm = max(width - 1, 1)
+            t = (xs / wm)[None, :] * np.ones((height, 1))
 
-        return img
+        return from_array(lut_from_t(t, lut))
 
 
 class RadialGradient(Gradient):
@@ -124,7 +115,6 @@ class RadialGradient(Gradient):
         self.center = center
 
     def render(self, width: int, height: int) -> PilImage.Image:
-        img = PilImage.new("RGBA", (width, height))
         cx = int(width * self.center[0])
         cy = int(height * self.center[1])
         max_dist = (
@@ -137,15 +127,10 @@ class RadialGradient(Gradient):
             or 1
         )
 
-        pixels = img.load()
-        if pixels is None:  # pragma: no cover
-            msg = "Pixel access failed"
-            raise RuntimeError(msg)
-        for y in range(height):
-            dy2 = (y - cy) ** 2
-            for x in range(width):
-                dist = ((x - cx) ** 2 + dy2) ** 0.5
-                t = min(dist / max_dist, 1.0)
-                pixels[x, y] = self._color_at(t)
+        lut = build_lut(self.colors)
+        xs = np.arange(width, dtype=np.float64) - cx
+        ys = np.arange(height, dtype=np.float64) - cy
+        dist = np.hypot(xs[None, :], ys[:, None])
+        t = np.clip(dist / max_dist, 0.0, 1.0)
 
-        return img
+        return from_array(lut_from_t(t, lut))

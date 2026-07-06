@@ -5,9 +5,11 @@ from __future__ import annotations
 import math
 from abc import ABC, abstractmethod
 
+import numpy as np
 from PIL import Image as PilImage
-from PIL import ImageDraw, ImageFilter, ImageOps, ImageStat
+from PIL import ImageDraw, ImageFilter, ImageOps
 
+from ._nputil import as_rgba, build_lut, from_array, lut_from_t
 from .canvas import Color
 from .color import to_rgb, to_rgba
 
@@ -68,7 +70,7 @@ class Vignette(Effect):
         color_layer = PilImage.new("RGBA", (w, h), color_rgba)
         color_layer.putalpha(mask)
 
-        result = image.convert("RGBA")
+        result = as_rgba(image)
         return PilImage.alpha_composite(result, color_layer)
 
 
@@ -98,7 +100,7 @@ class ColorOverlay(Effect):
         rgba = to_rgba(self.color, alpha=int(self.alpha * 255))
         overlay = PilImage.new("RGBA", (w, h), rgba)
 
-        result = image.convert("RGBA")
+        result = as_rgba(image)
         return PilImage.alpha_composite(result, overlay)
 
 
@@ -136,7 +138,8 @@ class DropShadow(Effect):
 
     def apply(self, image: PilImage.Image) -> PilImage.Image:
         w, h = image.size
-        alpha_channel = image.convert("RGBA").split()[3]
+        source = as_rgba(image)
+        alpha_channel = source.split()[3]
 
         color_rgba = to_rgba(self.color, alpha=int(self.alpha * 255))
 
@@ -149,7 +152,7 @@ class DropShadow(Effect):
 
         result = PilImage.new("RGBA", (w, h), (0, 0, 0, 0))
         result.paste(shadow, self.offset, shadow)
-        result = PilImage.alpha_composite(result, image.convert("RGBA"))
+        result = PilImage.alpha_composite(result, source)
         return result
 
 
@@ -182,7 +185,8 @@ class Glow(Effect):
             self.color = tuple(color)
 
     def apply(self, image: PilImage.Image) -> PilImage.Image:
-        alpha_channel = image.convert("RGBA").split()[3]
+        source = as_rgba(image)
+        alpha_channel = source.split()[3]
         w, h = image.size
 
         color_rgba = to_rgba(self.color, alpha=int(self.alpha * 255))
@@ -197,7 +201,7 @@ class Glow(Effect):
                 ImageFilter.GaussianBlur(radius=self.radius)
             )
 
-        result = PilImage.alpha_composite(color_layer, image.convert("RGBA"))
+        result = PilImage.alpha_composite(color_layer, source)
         return result
 
 
@@ -226,50 +230,26 @@ class Gradient(Effect):
         self.colors = colors
         self.direction = direction
 
-    @staticmethod
-    def _lerp_color(
-        c1: tuple[int, ...], c2: tuple[int, ...], t: float
-    ) -> tuple[int, ...]:
-        return tuple(int(a + (b - a) * t) for a, b in zip(c1[:3], c2[:3]))
-
     def apply(self, image: PilImage.Image) -> PilImage.Image:
         w, h = image.size
-        parsed: list[tuple[int, int, int]] = [to_rgb(c) for c in self.colors]
+        source = as_rgba(image)
 
-        gradient = PilImage.new("RGBA", (w, h), (0, 0, 0, 0))
-
-        n_colors = len(parsed)
-        steps = n_colors - 1
+        # LUT interpolates the stops uniformly, matching the old per-line
+        # idx/lerp math where position runs 0..1 across the axis.
+        lut = build_lut(self.colors)
+        xs = np.arange(w, dtype=np.float64)
+        ys = np.arange(h, dtype=np.float64)
 
         if self.direction == "vertical":
-            for y in range(h):
-                t = y / h * steps
-                idx = min(int(t), steps - 1)
-                lt = t - idx
-                color = self._lerp_color(parsed[idx], parsed[idx + 1], lt)
-                draw = ImageDraw.Draw(gradient)
-                draw.line([(0, y), (w, y)], fill=color)
+            t = (ys / h)[:, None] * np.ones((1, w))
         elif self.direction == "diagonal":
-            total = w + h
-            for px in range(total):
-                t = px / total * steps
-                idx = min(int(t), steps - 1)
-                lt = t - idx
-                color = self._lerp_color(parsed[idx], parsed[idx + 1], lt)
-                draw = ImageDraw.Draw(gradient)
-                draw.line([(px, 0), (0, px)], fill=color)
+            t = (xs[None, :] + ys[:, None]) / (w + h)
         else:
-            for x in range(w):
-                t = x / w * steps
-                idx = min(int(t), steps - 1)
-                lt = t - idx
-                color = self._lerp_color(parsed[idx], parsed[idx + 1], lt)
-                draw = ImageDraw.Draw(gradient)
-                draw.line([(x, 0), (x, h)], fill=color)
+            t = (xs / w)[None, :] * np.ones((h, 1))
 
-        source_alpha = image.convert("RGBA").getchannel("A")
-        gradient.putalpha(source_alpha)
-        return gradient
+        gradient = lut_from_t(t, lut)
+        gradient[..., 3] = np.asarray(source.getchannel("A"))
+        return from_array(gradient)
 
 
 class PixelateRegion(Effect):
@@ -290,7 +270,7 @@ class PixelateRegion(Effect):
         self.pixel_size = pixel_size
 
     def apply(self, image: PilImage.Image) -> PilImage.Image:
-        result = image.convert("RGBA")
+        result = as_rgba(image)
         left, top, right, bottom = self.box
         region = result.crop(self.box)
         rw = max(right - left, 1)
@@ -337,7 +317,7 @@ class Noise(Effect):
             noise = PilImage.merge("RGB", (r, g, b))
 
         noise = noise.convert("RGBA")
-        return PilImage.blend(image.convert("RGBA"), noise, self.intensity)
+        return PilImage.blend(as_rgba(image), noise, self.intensity)
 
 
 class Posterize(Effect):
@@ -355,7 +335,7 @@ class Posterize(Effect):
         self.bits = max(1, min(8, bits))
 
     def apply(self, image: PilImage.Image) -> PilImage.Image:
-        img = image.convert("RGBA")
+        img = as_rgba(image)
         alpha = img.split()[3]
         posterized = ImageOps.posterize(img.convert("RGB"), self.bits)
         return PilImage.merge("RGBA", (*posterized.split(), alpha))
@@ -376,7 +356,7 @@ class Solarize(Effect):
         self.threshold = max(0, min(255, threshold))
 
     def apply(self, image: PilImage.Image) -> PilImage.Image:
-        img = image.convert("RGBA")
+        img = as_rgba(image)
         alpha = img.split()[3]
         solarized = ImageOps.solarize(img.convert("RGB"), self.threshold)
         return PilImage.merge("RGBA", (*solarized.split(), alpha))
@@ -417,7 +397,7 @@ class OilPaint(Effect):
         self.size = max(1, radius) * 2 + 1
 
     def apply(self, image: PilImage.Image) -> PilImage.Image:
-        return image.convert("RGBA").filter(ImageFilter.ModeFilter(size=self.size))
+        return as_rgba(image).filter(ImageFilter.ModeFilter(size=self.size))
 
 
 class TiltShift(Effect):
@@ -446,7 +426,7 @@ class TiltShift(Effect):
         self.focus_width = focus_width
 
     def apply(self, image: PilImage.Image) -> PilImage.Image:
-        img = image.convert("RGBA")
+        img = as_rgba(image)
         blurred = img.filter(ImageFilter.GaussianBlur(radius=self.blur_strength))
         w, h = img.size
 
@@ -525,7 +505,7 @@ class Bloom(Effect):
         self.intensity = min(1.0, max(0.0, intensity))
 
     def apply(self, image: PilImage.Image) -> PilImage.Image:
-        img = image.convert("RGBA")
+        img = as_rgba(image)
         lum = img.convert("L")
         bright_mask = lum.point(lambda x: 255 if x > self.threshold else 0)  # type: ignore[operator]
 
@@ -555,7 +535,7 @@ class ChromaticAberration(Effect):
         self.offset = offset
 
     def apply(self, image: PilImage.Image) -> PilImage.Image:
-        img = image.convert("RGBA")
+        img = as_rgba(image)
         w, h = img.size
         r, g, b, a = img.split()
 
@@ -590,7 +570,7 @@ class EdgeGlow(Effect):
         self.intensity = min(1.0, max(0.0, intensity))
 
     def apply(self, image: PilImage.Image) -> PilImage.Image:
-        img = image.convert("RGBA")
+        img = as_rgba(image)
         grey = img.convert("L")
         edges = grey.filter(ImageFilter.FIND_EDGES)
 
@@ -628,18 +608,20 @@ class Halftone(Effect):
         cos_a = math.cos(rad)
         sin_a = math.sin(rad)
 
-        for y in range(0, h, ds):
-            for x in range(0, w, ds):
-                bx = min(x + ds, w)
-                by = min(y + ds, h)
-                block = grey.crop((x, y, bx, by))
-                stats = ImageStat.Stat(block)
-                avg = stats.mean[0] / 255.0
+        # Block averages in one C op: shrink to the block grid (area average).
+        nx = (w + ds - 1) // ds
+        ny = (h + ds - 1) // ds
+        small = grey.resize((nx, ny), PilImage.Resampling.BOX)
+        block_avg = np.asarray(small)
+
+        for j in range(ny):
+            for i in range(nx):
+                avg = block_avg[j, i] / 255.0
                 radius = (1.0 - avg) * (ds / 2)
 
                 if radius > 0.5:
-                    cx = x + ds // 2
-                    cy = y + ds // 2
+                    cx = i * ds + ds // 2
+                    cy = j * ds + ds // 2
                     rx = abs(radius * cos_a)
                     ry = abs(radius * sin_a)
                     draw.ellipse(
@@ -668,7 +650,7 @@ class Kaleidoscope(Effect):
         w, h = image.size
         cx, cy = w // 2, h // 2
         size = min(cx, cy)
-        img = image.convert("RGBA")
+        img = as_rgba(image)
         center = img.crop((cx - size, cy - size, cx + size, cy + size))
 
         result = PilImage.new("RGBA", (size * 2, size * 2), (0, 0, 0, 0))
@@ -702,23 +684,18 @@ class Ripple(Effect):
 
     def apply(self, image: PilImage.Image) -> PilImage.Image:
         w, h = image.size
-        img = image.convert("RGBA")
-        pixels = img.load()
-        if pixels is None:
-            return img
-        out = PilImage.new("RGBA", (w, h), (0, 0, 0, 0))
-        out_pixels = out.load()
-        if out_pixels is None:
-            return img
+        arr = np.asarray(as_rgba(image))
 
-        for y in range(h):
-            dx = int(self.amplitude * math.sin(2 * math.pi * y / self.period))
-            for x in range(w):
-                sx = x + dx
-                if 0 <= sx < w:
-                    out_pixels[x, y] = pixels[sx, y]
+        rows = np.arange(h)
+        dxs = (self.amplitude * np.sin(2 * np.pi * rows / self.period)).astype(int)
 
-        return out
+        sx = np.arange(w)[None, :] + dxs[:, None]
+        valid = (sx >= 0) & (sx < w)
+        ys = np.broadcast_to(rows[:, None], (h, w))
+
+        out = np.zeros_like(arr)
+        out[valid] = arr[ys[valid], np.clip(sx, 0, w - 1)[valid]]
+        return from_array(out)
 
 
 class Blur(Effect):
@@ -739,7 +716,7 @@ class Blur(Effect):
         self.mode = mode
 
     def apply(self, image: PilImage.Image) -> PilImage.Image:
-        img = image.convert("RGBA")
+        img = as_rgba(image)
         if self.mode == "box":
             return img.filter(ImageFilter.BoxBlur(radius=self.amount))
         return img.filter(ImageFilter.GaussianBlur(radius=self.amount))
@@ -749,14 +726,14 @@ class Contour(Effect):
     """Find image contours. Built-in Pillow filter."""
 
     def apply(self, image: PilImage.Image) -> PilImage.Image:
-        return image.convert("RGBA").filter(ImageFilter.CONTOUR)
+        return as_rgba(image).filter(ImageFilter.CONTOUR)
 
 
 class Emboss(Effect):
     """Emboss effect. Built-in Pillow filter."""
 
     def apply(self, image: PilImage.Image) -> PilImage.Image:
-        return image.convert("RGBA").filter(ImageFilter.EMBOSS)
+        return as_rgba(image).filter(ImageFilter.EMBOSS)
 
 
 class EdgeEnhance(Effect):
@@ -774,7 +751,7 @@ class EdgeEnhance(Effect):
         self.amount = amount
 
     def apply(self, image: PilImage.Image) -> PilImage.Image:
-        img = image.convert("RGBA")
+        img = as_rgba(image)
         for _ in range(self.amount):
             img = img.filter(ImageFilter.EDGE_ENHANCE)
         return img
@@ -795,7 +772,7 @@ class Sharpen(Effect):
         self.amount = amount
 
     def apply(self, image: PilImage.Image) -> PilImage.Image:
-        img = image.convert("RGBA")
+        img = as_rgba(image)
         for _ in range(self.amount):
             img = img.filter(ImageFilter.SHARPEN)
         return img
@@ -816,7 +793,7 @@ class Smooth(Effect):
         self.amount = amount
 
     def apply(self, image: PilImage.Image) -> PilImage.Image:
-        img = image.convert("RGBA")
+        img = as_rgba(image)
         for _ in range(self.amount):
             img = img.filter(ImageFilter.SMOOTH)
         return img
@@ -890,10 +867,9 @@ class Glitch(Effect):
 
         rng = _random.Random(self.seed)
 
-        img = image.convert("RGBA")
-        w, h = img.size
-        result = img.copy()
-        pixels = result.load()
+        src = np.asarray(as_rgba(image))
+        h, w = src.shape[:2]
+        res = src.copy()
         strip_h = max(2, int(h * 0.04 * self.amount))
 
         y = 0
@@ -901,16 +877,15 @@ class Glitch(Effect):
             if rng.random() < 0.25 * self.amount:
                 sh = min(strip_h, h - y)
                 offset = int((rng.randint(-15, 15)) * self.amount)
-                for sy in range(sh):
-                    for sx in range(w):
-                        sx2 = sx + offset
-                        if 0 <= sx2 < w and pixels is not None:
-                            pixels[sx, y + sy] = img.getpixel((sx2, y + sy))  # type: ignore[index]
+                if offset >= 0 and w - offset > 0:
+                    res[y : y + sh, : w - offset] = src[y : y + sh, offset:w]
+                elif offset < 0 and w + offset > 0:
+                    res[y : y + sh, -offset:w] = src[y : y + sh, : w + offset]
                 y += sh
             else:
                 y += 1
 
-        return result
+        return from_array(res)
 
 
 class Sketch(Effect):
@@ -931,22 +906,12 @@ class Sketch(Effect):
         grey = image.convert("L")
         inverted = ImageOps.invert(grey)
         blurred = inverted.filter(ImageFilter.GaussianBlur(radius=self.blur))
-        w, h = image.size
-        g_p = grey.load()
-        b_p = blurred.load()
-        if g_p is None or b_p is None:
-            return image.convert("RGBA")
-        out = PilImage.new("L", (w, h))
-        o_p = out.load()
-        if o_p is None:
-            return image.convert("RGBA")
-        for y in range(h):
-            for x in range(w):
-                gv = g_p[x, y]
-                bv = b_p[x, y]
-                d = gv * 256 // max(1, 256 - bv)  # type: ignore[operator]
-                o_p[x, y] = min(255, d)
-        return out.convert("RGBA")
+
+        g = np.asarray(grey).astype(np.int32)
+        b = np.asarray(blurred).astype(np.int32)
+        d = g * 256 // np.maximum(1, 256 - b)
+        out = np.minimum(255, d).astype(np.uint8)
+        return PilImage.fromarray(out, "L").convert("RGBA")
 
 
 class Cartoon(Effect):
@@ -967,7 +932,7 @@ class Cartoon(Effect):
         self.edge_thickness = max(0, edge_thickness)
 
     def apply(self, image: PilImage.Image) -> PilImage.Image:
-        img = image.convert("RGBA")
+        img = as_rgba(image)
         posterized = ImageOps.posterize(img.convert("RGB"), self.colors)
         grey = img.convert("L")
         edges = grey.filter(ImageFilter.FIND_EDGES)
@@ -1044,18 +1009,14 @@ class Dither(Effect):
             [42, 26, 38, 22, 41, 25, 37, 21],
         ]
         w, h = grey.size
-        px = grey.load()
-        if px is None:
-            return image.convert("RGBA")
-        out = PilImage.new("L", (w, h))
-        op = out.load()
-        if op is None:
-            return image.convert("RGBA")
-        for y in range(h):
-            for x in range(w):
-                b = bayer[y % 8][x % 8]
-                op[x, y] = 255 if px[x, y] > (b + 0.5) * 255 / 64 else 0  # type: ignore[operator]
-        return out.convert("RGBA")
+        g = np.asarray(grey)
+        bayer_arr = np.array(bayer, dtype=np.float64)
+        reps_y = (h + 7) // 8
+        reps_x = (w + 7) // 8
+        tiled = np.tile(bayer_arr, (reps_y, reps_x))[:h, :w]
+        thresh = (tiled + 0.5) * 255 / 64
+        out = np.where(g > thresh, 255, 0).astype(np.uint8)
+        return PilImage.fromarray(out, "L").convert("RGBA")
 
 
 class Scanlines(Effect):
@@ -1076,7 +1037,7 @@ class Scanlines(Effect):
         self.opacity = max(0.0, min(1.0, opacity))
 
     def apply(self, image: PilImage.Image) -> PilImage.Image:
-        img = image.convert("RGBA")
+        img = as_rgba(image)
         w, h = img.size
         overlay = PilImage.new("RGBA", (w, h), (0, 0, 0, 0))
         draw = ImageDraw.Draw(overlay)
@@ -1105,33 +1066,28 @@ class Vortex(Effect):
         self.radius = radius
 
     def apply(self, image: PilImage.Image) -> PilImage.Image:
-        img = image.convert("RGBA")
+        img = as_rgba(image)
         w, h = img.size
         cx, cy = w // 2, h // 2
         mr = self.radius if self.radius is not None else min(cx, cy)
-        px = img.load()
-        if px is None:
-            return img
-        out = PilImage.new("RGBA", (w, h), (0, 0, 0, 0))
-        op = out.load()
-        if op is None:
-            return img
-        for y in range(h):
-            for x in range(w):
-                dx, dy = x - cx, y - cy
-                dist = math.sqrt(dx * dx + dy * dy)
-                if dist < mr and dist > 0.5:
-                    angle = self.strength * (1 - dist / mr)
-                    cs, sn = math.cos(angle), math.sin(angle)
-                    nx = int(cx + dx * cs - dy * sn)
-                    ny = int(cy + dx * sn + dy * cs)
-                    if 0 <= nx < w and 0 <= ny < h:
-                        op[x, y] = px[nx, ny]
-                    else:
-                        op[x, y] = px[x, y]
-                else:
-                    op[x, y] = px[x, y]
-        return out
+        arr = np.asarray(img)
+
+        ys, xs = np.mgrid[0:h, 0:w]
+        dx = xs - cx
+        dy = ys - cy
+        dist = np.sqrt(dx * dx + dy * dy)
+        mask = (dist < mr) & (dist > 0.5)
+
+        angle = self.strength * (1 - dist / mr)
+        cs = np.cos(angle)
+        sn = np.sin(angle)
+        nx = (cx + dx * cs - dy * sn).astype(int)
+        ny = (cy + dx * sn + dy * cs).astype(int)
+
+        inb = mask & (nx >= 0) & (nx < w) & (ny >= 0) & (ny < h)
+        out = arr.copy()
+        out[inb] = arr[np.clip(ny, 0, h - 1)[inb], np.clip(nx, 0, w - 1)[inb]]
+        return from_array(out)
 
 
 class Neon(Effect):
@@ -1152,7 +1108,7 @@ class Neon(Effect):
         self.glow_radius = max(0, glow_radius)
 
     def apply(self, image: PilImage.Image) -> PilImage.Image:
-        img = image.convert("RGBA")
+        img = as_rgba(image)
         grey = img.convert("L")
         edges = grey.filter(ImageFilter.FIND_EDGES)
 
@@ -1188,23 +1144,11 @@ class PixelSort(Effect):
         return 0.299 * p[0] + 0.587 * p[1] + 0.114 * p[2]
 
     def apply(self, image: PilImage.Image) -> PilImage.Image:
-        img = image.convert("RGBA")
-        w, h = img.size
-        px = img.load()
-        if px is None:
-            return img
+        arr = np.asarray(as_rgba(image))
+        rgb = arr[..., :3].astype(np.float64)
+        bright = 0.299 * rgb[..., 0] + 0.587 * rgb[..., 1] + 0.114 * rgb[..., 2]
 
-        if self.direction == "vertical":
-            for x in range(w):
-                col: list = [px[x, y] for y in range(h)]
-                col.sort(key=self._brightness)
-                for y in range(h):
-                    px[x, y] = col[y]  # type: ignore[index]
-        else:
-            for y in range(h):
-                row: list = [px[x, y] for x in range(w)]
-                row.sort(key=self._brightness)
-                for x in range(w):
-                    px[x, y] = row[x]  # type: ignore[index]
-
-        return img
+        axis = 0 if self.direction == "vertical" else 1
+        order = np.argsort(bright, axis=axis, kind="stable")
+        out = np.take_along_axis(arr, order[..., None], axis=axis)
+        return from_array(out)
