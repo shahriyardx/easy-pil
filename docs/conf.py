@@ -22,8 +22,14 @@ project = "Easy PIL"
 copyright = "2021, Md Shahriyar Alam"
 author = "Md Shahriyar Alam"
 
-# The full version, including alpha/beta/rc tags
-release = "0.5.0"
+# The full version, read from the package so docs never drift from releases.
+_version_ns: dict = {}
+with open(
+    os.path.join(os.path.dirname(__file__), "..", "easy_pil", "_version.py")
+) as f:
+    exec(f.read(), _version_ns)  # noqa: S102
+release = _version_ns["__version__"]
+version = release
 
 
 # -- General configuration ---------------------------------------------------
